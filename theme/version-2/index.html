@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Getiren · Akyaka — Pusula (v2)</title>
+<style>
+  :root{
+    --bg:#eef3f7; --surface:#ffffff; --surface-2:#f5f8fb;
+    --ink:#0f2b3d; --muted:#5f7488; --line:#e5ecf2;
+    --brand:#10a394; --brand-2:#0a7e71; --brand-ink:#053c37;
+    --sky:#2aa7d8; --accent:#ef6b52; --gold:#f4b740;
+    --ok:#15a34a; --warn:#d98a00;
+    --side-1:#0b3a37; --side-2:#0a2b29;
+    --r:16px; --r-sm:11px;
+    --shadow:0 18px 40px -26px rgba(10,60,55,.5);
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink); background:var(--bg); min-height:100vh; line-height:1.5}
+  h1,h2,h3{margin:0; letter-spacing:-.02em}
+  button{font:inherit; cursor:pointer; border:0; background:none; color:inherit}
+  input,textarea,select{font:inherit; color:var(--ink)}
+  .muted{color:var(--muted)}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:11px 16px;
+    border-radius:12px; font-weight:700; transition:.15s; white-space:nowrap}
+  .btn--primary{background:var(--brand); color:#fff; box-shadow:0 12px 22px -14px var(--brand)}
+  .btn--primary:hover{background:var(--brand-2); transform:translateY(-1px)}
+  .btn--accent{background:var(--accent); color:#fff; box-shadow:0 12px 22px -14px var(--accent)}
+  .btn--ghost{background:var(--surface-2); color:var(--brand-2); border:1px solid var(--line)}
+  .btn--block{width:100%}
+  .btn--sm{padding:8px 12px; font-size:13.5px; border-radius:10px}
+  .btn:disabled{opacity:.45; cursor:not-allowed; transform:none; box-shadow:none}
+  .input{width:100%; padding:12px 14px; border:1px solid var(--line); border-radius:12px;
+    background:var(--surface-2); outline:0; transition:.15s}
+  .input:focus{border-color:var(--brand); box-shadow:0 0 0 4px #10a39422; background:#fff}
+  .field{margin-top:15px}
+  .field label{display:block; font-size:12px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.07em; color:var(--muted); margin-bottom:6px}
+  .link{color:var(--brand-2); font-weight:800; text-decoration:none}
+
+  /* ---------- LOGIN ---------- */
+  #login{min-height:100vh; display:grid; place-items:center; padding:22px;
+    background:
+      radial-gradient(50rem 26rem at 15% 0%, #10a39433, transparent 60%),
+      radial-gradient(46rem 26rem at 100% 100%, #2aa7d833, transparent 60%), var(--bg)}
+  .authcard{width:min(420px,100%); background:var(--surface); border:1px solid var(--line);
+    border-radius:22px; padding:34px 30px; box-shadow:var(--shadow); text-align:center}
+  .logo-lg{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;display:grid;place-items:center;
+    font-size:26px; color:#fff; background:linear-gradient(140deg,var(--brand),var(--brand-2))}
+  .authcard h1{font-size:23px}
+  .authcard .sub{color:var(--muted); margin:6px 0 22px}
+  .authcard .field{text-align:left}
+  .authcard .foot{margin-top:16px; color:var(--muted); font-size:14px}
+  .brandword{font-weight:900; letter-spacing:-.03em}
+  .brandword span{color:var(--brand)}
+
+  /* ---------- APP SHELL ---------- */
+  #app[hidden]{display:none}
+  .shell{display:grid; grid-template-columns:248px 1fr; min-height:100vh}
+  .sidebar{background:linear-gradient(185deg,var(--side-1),var(--side-2)); color:#dff6f1;
+    padding:22px 16px; display:flex; flex-direction:column; gap:6px; position:sticky; top:0; height:100vh}
+  .sidebar .brand{display:flex; align-items:center; gap:10px; padding:6px 10px 18px; font-weight:900; font-size:18px; letter-spacing:-.03em}
+  .sidebar .brand .m{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+    background:#ffffff1a; color:#fff}
+  .sidebar .brand span{color:var(--gold)}
+  .navitem{display:flex; align-items:center; gap:12px; padding:11px 13px; border-radius:12px;
+    color:#bfe4dd; font-weight:700; transition:.15s; text-align:left; width:100%}
+  .navitem .ic{width:22px; text-align:center}
+  .navitem:hover{background:#ffffff12; color:#fff}
+  .navitem.active{background:#ffffff1f; color:#fff; box-shadow:inset 3px 0 0 var(--gold)}
+  .navspacer{flex:1}
+  .sideuser{display:flex; align-items:center; gap:11px; padding:12px; border-radius:14px; background:#ffffff12}
+  .sideuser .av{width:36px;height:36px;border-radius:999px;display:grid;place-items:center;font-weight:900;
+    color:#053c37; background:var(--gold)}
+  .sideuser small{color:#a9d6cd; display:block; font-size:12px}
+
+  .content{display:flex; flex-direction:column; min-width:0}
+  .contentbar{position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:12px;
+    padding:14px 26px; background:#ffffffcc; backdrop-filter:blur(12px); border-bottom:1px solid var(--line)}
+  .contentbar h2{font-size:18px}
+  .contentbar .spacer{flex:1}
+  .wallet-chip{display:flex; align-items:center; gap:8px; padding:8px 13px; border-radius:12px;
+    background:var(--surface-2); border:1px solid var(--line); font-weight:800; font-size:14px}
+  .wallet-chip b{color:var(--brand-2)}
+  main{padding:22px 26px 90px; max-width:1120px; width:100%}
+  .view[hidden]{display:none}
+
+  .lead{color:var(--muted); margin:0 0 18px; max-width:62ch}
+  .grid{display:grid; gap:16px}
+  .cols-2{grid-template-columns:1.05fr .95fr}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:20px}
+  .card h3{font-size:16px; display:flex; align-items:center; gap:8px}
+  .card .sub{color:var(--muted); font-size:13.5px; margin:3px 0 0}
+
+  .zones{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px}
+  .zone{border:1px solid var(--line); border-radius:12px; padding:12px; text-align:left; background:var(--surface-2); transition:.15s}
+  .zone:hover{border-color:#10a39466}
+  .zone.active{border-color:var(--brand); background:#10a3940f; box-shadow:0 0 0 3px #10a39422}
+  .zone b{display:block; font-size:14px}
+  .zone span{font-size:12.5px; color:var(--muted)}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  .chip{padding:7px 12px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); font-weight:700; font-size:12.5px}
+  .chip--brand{background:#10a3941a; border-color:#10a39433; color:var(--brand-2)}
+
+  /* estimate — light card with left accent */
+  .estimate{border-left:4px solid var(--brand)}
+  .est-empty{min-height:210px; display:grid; place-items:center; text-align:center; color:var(--muted);
+    border:1px dashed var(--line); border-radius:12px; padding:18px; background:var(--surface-2)}
+  .metric{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px;
+    border-radius:12px; background:var(--surface-2); border:1px solid var(--line); margin-top:9px}
+  .metric span{color:var(--muted); font-weight:700; font-size:14px}
+  .metric b{font-size:18px}
+  .metric.total{background:linear-gradient(135deg,#10a394,#0a7e71); color:#fff; border:0}
+  .metric.total span{color:#d3f5ef}
+  .est-note{margin-top:13px; color:var(--muted); font-size:13.5px}
+
+  .stepper{display:flex; gap:6px; margin-top:14px; overflow:auto; padding-bottom:4px}
+  .step{flex:1; min-width:92px; text-align:center}
+  .step .bul{width:28px;height:28px;border-radius:999px;margin:0 auto 7px;display:grid;place-items:center;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--muted); font-weight:900; font-size:12px}
+  .step small{font-size:11.5px; color:var(--muted); font-weight:700}
+  .step.done .bul{background:var(--brand); border-color:var(--brand); color:#fff}
+  .step.now .bul{background:#fff; border-color:var(--accent); color:var(--accent); box-shadow:0 0 0 4px #ef6b5222}
+  .step.now small{color:var(--accent)}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+  .stat{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:16px}
+  .stat .k{color:var(--muted); font-weight:700; font-size:13px; display:flex; align-items:center; gap:7px}
+  .stat .v{font-size:25px; font-weight:900; letter-spacing:-.03em; margin-top:5px}
+  .stat .v small{font-size:13px; color:var(--muted); font-weight:800}
+  .stat.accent{background:linear-gradient(140deg,var(--brand),var(--brand-2)); color:#fff; border:0}
+  .stat.accent .k{color:#d3f5ef}
+
+  .stack{display:grid; gap:12px}
+  .order{border:1px solid var(--line); border-radius:14px; padding:15px; background:var(--surface)}
+  .order__top{display:flex; justify-content:space-between; gap:10px; align-items:start}
+  .order__top b{font-size:14.5px}
+  .badge{font-size:11.5px; font-weight:900; padding:5px 10px; border-radius:999px; white-space:nowrap}
+  .badge--reserved{background:#2aa7d81a; color:#1a7ba3}
+  .badge--shopping{background:#f4b74022; color:#a5720b}
+  .badge--way{background:#ef6b521f; color:#c1471f}
+  .badge--delivered{background:#15a34a1a; color:#127a38}
+  .badge--extra{background:#ef6b521f; color:#b23328}
+  .order__meta{display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:9px; color:var(--muted); font-size:13.5px}
+  .order__meta b{color:var(--ink)}
+  .order__actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+  .items{display:grid; gap:8px; margin-top:11px}
+  .item{display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center;
+    padding:9px 12px; border-radius:10px; background:var(--surface-2); border:1px solid var(--line)}
+  .item input{width:86px; text-align:right; padding:7px 9px; border:1px solid var(--line); border-radius:9px; background:#fff}
+  .item .q{width:52px}
+
+  .tablewrap{overflow:auto; border:1px solid var(--line); border-radius:14px; margin-top:14px; background:#fff}
+  table{width:100%; border-collapse:collapse; min-width:640px}
+  th,td{padding:12px 15px; text-align:left; border-bottom:1px solid var(--line); font-size:14px}
+  th{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); background:var(--surface-2)}
+  tr:last-child td{border-bottom:0}
+  .num{text-align:right; font-variant-numeric:tabular-nums}
+
+  /* bottom nav (mobile) */
+  .bottomnav{display:none}
+
+  .toast{position:fixed; left:50%; bottom:84px; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#eafffb; padding:11px 18px; border-radius:12px; font-weight:700; font-size:14px;
+    box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s; z-index:60}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .sidebar{display:none}
+    main{padding-bottom:96px}
+    .cols-2{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr 1fr}
+    .bottomnav{display:flex; position:fixed; left:0; right:0; bottom:0; z-index:30;
+      background:#ffffffe6; backdrop-filter:blur(12px); border-top:1px solid var(--line);
+      padding:8px 8px calc(8px + env(safe-area-inset-bottom)); justify-content:space-around}
+    .bottomnav button{display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 14px;
+      border-radius:12px; color:var(--muted); font-weight:800; font-size:11.5px}
+    .bottomnav button.active{color:var(--brand-2); background:var(--surface-2)}
+    .bottomnav .ic{font-size:19px}
+  }
+  @media (max-width:520px){ .stats{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="login">
+  <div class="authcard">
+    <div class="logo-lg">◎</div>
+    <h1 class="brandword">getiren<span>akyaka</span></h1>
+    <p class="sub">Akyaka · Gökova · Akçapınar concierge</p>
+    <div class="field"><label>E-posta</label><input class="input" type="email" value="gencer@bizsim.com" /></div>
+    <div class="field"><label>Şifre</label><input class="input" type="password" value="••••••••" /></div>
+    <div style="margin-top:18px"><button class="btn btn--primary btn--block" onclick="enterApp()">Giriş yap</button></div>
+    <p class="foot">Hesabın yok mu? <a class="link" href="#" onclick="enterApp();return false">Kayıt ol</a></p>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app" hidden>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="m">◎</span> getiren<span>akyaka</span></div>
+      <button class="navitem active" data-role="customer" onclick="setRole('customer')"><span class="ic">🛒</span> Müşteri</button>
+      <button class="navitem" data-role="courier" onclick="setRole('courier')"><span class="ic">🛵</span> Kurye</button>
+      <button class="navitem" data-role="admin" onclick="setRole('admin')"><span class="ic">📊</span> Yönetici</button>
+      <div class="navspacer"></div>
+      <div class="sideuser"><span class="av">GG</span><div><b>Gencer G.</b><small>Müşteri · Akyaka</small></div></div>
+    </aside>
+
+    <div class="content">
+      <div class="contentbar">
+        <h2 id="pageTitle">Müşteri</h2>
+        <div class="spacer"></div>
+        <div class="wallet-chip"><span class="muted">Bakiye</span> <b id="wallet">1.000 TL</b></div>
+        <button class="btn btn--ghost btn--sm" onclick="topup()">+500 TL</button>
+      </div>
+
+      <main>
+        <!-- CUSTOMER -->
+        <section class="view" id="v-customer">
+          <p class="lead">Ne lazımsa serbestçe yaz — tahmini çıkaralım, onaylayınca cüzdanından bloke edelim. Gerçek fişe göre keser, fazlasını iade ederiz.</p>
+          <div class="grid cols-2">
+            <div class="card">
+              <h3>🧺 Sipariş</h3>
+              <div class="field"><label>Ne getirelim?</label>
+                <textarea class="input" id="orderText" rows="4">1 kutu süt, 2 ağrı kesici, ekmek</textarea></div>
+              <div class="field"><label>Bölge</label>
+                <div class="zones" id="zones">
+                  <button class="zone active" data-zone="akyaka"><b>Akyaka</b><span>250 TL</span></button>
+                  <button class="zone" data-zone="gokova"><b>Gökova</b><span>350 TL</span></button>
+                  <button class="zone" data-zone="akcapinar"><b>Akçapınar</b><span>350 TL</span></button>
+                </div>
+              </div>
+              <div class="order__actions" style="margin-top:16px">
+                <button class="btn btn--ghost" onclick="doEstimate()">Tahmin et</button>
+                <button class="btn btn--accent" id="reserveBtn" onclick="reserve()">Onayla ve bloke et</button>
+              </div>
+              <div class="chips">
+                <span class="chip chip--brand">%15 güvenlik payı</span>
+                <span class="chip">Fazlası iade</span><span class="chip">Canlı takip</span>
+              </div>
+            </div>
+            <div class="card estimate">
+              <h3>Tahmin</h3><p class="sub">Gerçek fiş düşük çıkarsa fark cüzdana iade edilir.</p>
+              <div id="estimateBody"><div class="est-empty">Henüz tahmin yok.<br/>“Tahmin et”e dokun.</div></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>🚚 Aktif sipariş · #A24-118</h3><p class="sub">Akyaka Merkez · Kurye: Mert K.</p>
+            <div class="stepper">
+              <div class="step done"><div class="bul">✓</div><small>Bloke</small></div>
+              <div class="step done"><div class="bul">✓</div><small>Atandı</small></div>
+              <div class="step now"><div class="bul">●</div><small>Alışverişte</small></div>
+              <div class="step"><div class="bul">3</div><small>Yolda</small></div>
+              <div class="step"><div class="bul">4</div><small>Teslim</small></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- COURIER -->
+        <section class="view" id="v-courier" hidden>
+          <p class="lead">Sana atanan siparişler. Alışverişte fişteki gerçek fiyatları gir, durumu ilerlet.</p>
+          <div class="stack">
+            <div class="order">
+              <div class="order__top"><b>1 kutu süt · 2 ağrı kesici · ekmek</b><span class="badge badge--shopping">Alışverişte</span></div>
+              <div class="order__meta"><span>📍 <b>Akyaka Merkez</b></span><span>🔒 Bloke <b>753 TL</b></span><span>👤 Gencer G.</span></div>
+              <div class="items">
+                <div class="item"><span>Süt (1)</span><input class="q" value="1"/><input value="52 TL"/></div>
+                <div class="item"><span>Ağrı kesici (2)</span><input class="q" value="2"/><input value="310 TL"/></div>
+                <div class="item"><span>Ekmek</span><input class="q" value="1"/><input value="15 TL"/></div>
+              </div>
+              <div class="order__actions">
+                <button class="btn btn--ghost btn--sm">Yola çıktım</button>
+                <button class="btn btn--primary btn--sm" onclick="toast('Fiş girildi · fark iade edildi')">Fiş gir ve kapat</button>
+              </div>
+            </div>
+            <div class="order">
+              <div class="order__top"><b>Kahve · su (6’lı) · 1 ekmek</b><span class="badge badge--reserved">Yeni · Bekliyor</span></div>
+              <div class="order__meta"><span>📍 <b>Gökova</b></span><span>🔒 Bloke <b>612 TL</b></span><span>👤 Selin A.</span></div>
+              <div class="order__actions">
+                <button class="btn btn--accent btn--sm" onclick="toast('Sipariş üstlenildi')">Üstlen</button>
+                <button class="btn btn--ghost btn--sm">Detay</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ADMIN -->
+        <section class="view" id="v-admin" hidden>
+          <p class="lead">Bugünkü akış, bloke tutarlar ve kurye ataması.</p>
+          <div class="stats">
+            <div class="stat accent"><div class="k">Bugünkü sipariş</div><div class="v">18</div></div>
+            <div class="stat"><div class="k">Aktif kurye</div><div class="v">4</div></div>
+            <div class="stat"><div class="k">Bloke tutar</div><div class="v">9.240 <small>TL</small></div></div>
+            <div class="stat"><div class="k">Tahsil (ciro)</div><div class="v">6.180 <small>TL</small></div></div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <div class="order__top"><div><h3>Siparişler</h3><p class="sub">Son 12 kayıt</p></div>
+              <button class="btn btn--ghost btn--sm">Ayarlar · fiyat/%pay</button></div>
+            <div class="tablewrap">
+              <table>
+                <thead><tr><th>#</th><th>Müşteri</th><th>Bölge</th><th>Durum</th><th class="num">Bloke</th><th class="num">Fiş</th><th>Kurye</th></tr></thead>
+                <tbody>
+                  <tr><td>A24-118</td><td>Gencer G.</td><td>Akyaka</td><td><span class="badge badge--shopping">Alışverişte</span></td><td class="num">753</td><td class="num">—</td><td>Mert K.</td></tr>
+                  <tr><td>A24-117</td><td>Selin A.</td><td>Gökova</td><td><span class="badge badge--way">Yolda</span></td><td class="num">612</td><td class="num">—</td><td>Deniz Y.</td></tr>
+                  <tr><td>A24-116</td><td>Barış T.</td><td>Akçapınar</td><td><span class="badge badge--delivered">Teslim</span></td><td class="num">905</td><td class="num">742</td><td>Mert K.</td></tr>
+                  <tr><td>A24-115</td><td>Elif D.</td><td>Akyaka</td><td><span class="badge badge--extra">Ek ödeme</span></td><td class="num">480</td><td class="num">560</td><td>Deniz Y.</td></tr>
+                  <tr><td>A24-114</td><td>Can P.</td><td>Gökova</td><td><span class="badge badge--reserved">Bloke</span></td><td class="num">330</td><td class="num">—</td><td><button class="btn btn--accent btn--sm" onclick="toast('Kurye atandı')">Ata</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- mobile bottom nav -->
+  <nav class="bottomnav">
+    <button class="active" data-role="customer" onclick="setRole('customer')"><span class="ic">🛒</span> Müşteri</button>
+    <button data-role="courier" onclick="setRole('courier')"><span class="ic">🛵</span> Kurye</button>
+    <button data-role="admin" onclick="setRole('admin')"><span class="ic">📊</span> Yönetici</button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const ZONES={akyaka:{name:'Akyaka Merkez',fee:250},gokova:{name:'Gökova',fee:350},akcapinar:{name:'Akçapınar',fee:350}};
+  const PRICES=[['ağrı',150],['ilaç',150],['kahve',120],['süt',50],['su',35],['ekmek',15]];
+  const TITLES={customer:'Müşteri',courier:'Kurye',admin:'Yönetici'};
+  let wallet=1000, zone='akyaka';
+  const fmt=n=>Math.round(n).toLocaleString('tr-TR');
+
+  function enterApp(){document.getElementById('login').hidden=true;document.getElementById('app').hidden=false;doEstimate();}
+  function setRole(r){
+    document.querySelectorAll('[data-role]').forEach(b=>b.classList.toggle('active',b.dataset.role===r));
+    ['customer','courier','admin'].forEach(v=>document.getElementById('v-'+v).hidden=(v!==r));
+    document.getElementById('pageTitle').textContent=TITLES[r];
+  }
+  function topup(){wallet+=500;document.getElementById('wallet').textContent=fmt(wallet)+' TL';toast('+500 TL yüklendi');}
+
+  document.getElementById('zones').addEventListener('click',e=>{
+    const z=e.target.closest('.zone'); if(!z)return;
+    document.querySelectorAll('.zone').forEach(x=>x.classList.remove('active'));
+    z.classList.add('active'); zone=z.dataset.zone; doEstimate();
+  });
+
+  function estimate(text,zoneId){
+    const zn=ZONES[zoneId]||ZONES.akyaka;
+    const parts=String(text||'').toLocaleLowerCase('tr').split(/[,\n;]+/).map(s=>s.trim()).filter(Boolean);
+    if(!parts.length)return null;
+    let items=0;
+    for(const part of parts){
+      const qty=Number((part.match(/^(\d+)/)||[])[1]||1);
+      let price=40;
+      for(const [w,p] of [...PRICES].sort((a,b)=>b[0].length-a[0].length)){
+        if(new RegExp('(^|[^a-zçğıöşü])'+w+'([^a-zçğıöşü]|$)','i').test(part)){price=p;break;}
+      }
+      items+=qty*price;
+    }
+    const buffer=Math.ceil(items*0.15);
+    return {items,buffer,fee:zn.fee,total:items+buffer+zn.fee,zoneName:zn.name};
+  }
+  function doEstimate(){
+    const e=estimate(document.getElementById('orderText').value,zone);
+    const body=document.getElementById('estimateBody');
+    if(!e){body.innerHTML='<div class="est-empty">Sipariş metni boş.</div>';return;}
+    body.innerHTML=`
+      <div class="metric"><span>Ürün tahmini</span><b>${fmt(e.items)} TL</b></div>
+      <div class="metric"><span>%15 güvenlik payı</span><b>${fmt(e.buffer)} TL</b></div>
+      <div class="metric"><span>Teslimat · ${e.zoneName}</span><b>${fmt(e.fee)} TL</b></div>
+      <div class="metric total"><span>Bloke edilecek</span><b>${fmt(e.total)} TL</b></div>
+      <p class="est-note">Onaylayınca ${fmt(e.total)} TL bloke edilir; gerçek fişe göre kesilir.</p>`;
+    document.getElementById('reserveBtn').disabled=wallet<e.total;
+  }
+  function reserve(){
+    const e=estimate(document.getElementById('orderText').value,zone); if(!e)return;
+    if(wallet<e.total)return toast('Yetersiz bakiye');
+    wallet-=e.total;document.getElementById('wallet').textContent=fmt(wallet)+' TL';
+    toast('Sipariş bloke edildi · kuryeye düştü'); setRole('courier');
+  }
+  let tTimer;
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('show'),2200);}
+</script>
+</body>
+</html>

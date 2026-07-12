@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Editörler
+/.idea
+/.vscode
+/.zed
+
+# Kök seviyede istenmeyenler (Laravel app'in kendi .gitignore'u getiren/ altında)
+node_modules/
+*.log

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bileşenler · Getiren Akyaka</title>
+<link rel="stylesheet" href="assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="customer/dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="customer/dashboard.html"><span class="nav__ic">🏠</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="customer/orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişler</span></a>
+      <a class="nav__item" href="customer/profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+      <a class="nav__item is-active" href="components.html"><span class="nav__ic">🎨</span> <span class="nav__label">Bileşenler</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="usercard">
+        <span class="avatar avatar--sm">GG</span>
+        <div><b style="font-size:14px">Gencer Ger</b><small>Müşteri · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Bileşenler</h1><p class="crumb">Tasarım sistemi · form ve arayüz objeleri</p></div>
+    </header>
+
+    <div class="content stack" style="gap:22px">
+
+      <!-- COLORS -->
+      <section class="card">
+        <p class="eyebrow">Renkler</p><h2 class="mb">Palet — Gün Batımı</h2>
+        <div class="grid cols-3">
+          <div><div class="swatch" style="background:var(--primary)"></div><div class="row" style="justify-content:space-between; margin-top:8px"><b>Terracotta</b><span class="kbd">#d85f3c</span></div></div>
+          <div><div class="swatch" style="background:var(--amber)"></div><div class="row" style="justify-content:space-between; margin-top:8px"><b>Amber</b><span class="kbd">#e19a2b</span></div></div>
+          <div><div class="swatch" style="background:var(--plum)"></div><div class="row" style="justify-content:space-between; margin-top:8px"><b>Erik</b><span class="kbd">#7c4a63</span></div></div>
+          <div><div class="swatch" style="background:var(--sage)"></div><div class="row" style="justify-content:space-between; margin-top:8px"><b>Adaçayı</b><span class="kbd">#5c7a5f</span></div></div>
+          <div><div class="swatch" style="background:var(--ink)"></div><div class="row" style="justify-content:space-between; margin-top:8px"><b>Mürekkep</b><span class="kbd">#2b2320</span></div></div>
+          <div><div class="swatch" style="background:var(--paper); border-color:var(--line-2)"></div><div class="row" style="justify-content:space-between; margin-top:8px"><b>Kâğıt</b><span class="kbd">#faf4ec</span></div></div>
+        </div>
+      </section>
+
+      <!-- TYPOGRAPHY -->
+      <section class="card">
+        <p class="eyebrow">Tipografi</p><h2 class="mb">Serif başlık + sans gövde</h2>
+        <div class="type-row"><h1 style="font-size:40px">Başlık 1</h1><span class="muted">Serif · 40</span></div>
+        <div class="type-row"><h2 style="font-size:28px">Başlık 2</h2><span class="muted">Serif · 28</span></div>
+        <div class="type-row"><h3 style="font-size:20px">Başlık 3</h3><span class="muted">Serif · 20</span></div>
+        <div class="type-row"><span>Gövde metni — kolay okunur sans.</span><span class="muted">Sans · 15</span></div>
+        <div class="type-row"><span class="muted">İkincil / ipucu metni.</span><span class="muted">Sans · 13</span></div>
+      </section>
+
+      <!-- BUTTONS -->
+      <section class="card">
+        <p class="eyebrow">Butonlar</p><h2 class="mb">Aksiyonlar</h2>
+        <div class="row">
+          <button class="btn btn--primary">Birincil</button>
+          <button class="btn btn--plum">Erik</button>
+          <button class="btn btn--soft">Yumuşak</button>
+          <button class="btn btn--ghost">Hayalet</button>
+          <button class="btn btn--danger">Tehlike</button>
+          <button class="btn btn--icon">＋</button>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn btn--primary btn--lg">Büyük</button>
+          <button class="btn btn--primary">Normal</button>
+          <button class="btn btn--primary btn--sm">Küçük</button>
+        </div>
+      </section>
+
+      <!-- FORM ELEMENTS -->
+      <section class="card">
+        <p class="eyebrow">Form öğeleri</p><h2 class="mb">Girdiler ve durumlar</h2>
+        <div class="grid cols-2">
+          <div class="field"><label class="label">Metin girdisi</label><input class="input" placeholder="Yaz..." /></div>
+          <div class="field"><label class="label">İkonlu girdi</label><div class="input-icon"><span class="ic">🔍</span><input class="input" placeholder="Ara" /></div></div>
+          <div class="field"><label class="label">Ön ekli girdi</label><div class="input-group"><span class="addon">+90</span><input class="input" placeholder="5xx" /></div></div>
+          <div class="field"><label class="label">Açılır liste</label><select class="select"><option>Akyaka</option><option>Gökova</option><option>Akçapınar</option></select></div>
+          <div class="field field--ok"><label class="label">Başarılı durum</label><input class="input" value="Geçerli" /><p class="ok-text">✓ Uygun</p></div>
+          <div class="field field--error"><label class="label">Hatalı durum</label><input class="input" value="Hatalı" /><p class="error-text">⚠ Bu alan zorunlu</p></div>
+        </div>
+        <div class="field"><label class="label">Çok satırlı</label><textarea class="textarea" placeholder="Not..."></textarea></div>
+        <div class="grid cols-3" style="align-items:center">
+          <label class="check"><input type="checkbox" checked /> Onay kutusu</label>
+          <label class="check"><input type="radio" name="d" checked /> Seçenek</label>
+          <div class="row"><span>Anahtar</span> <label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+        </div>
+        <div class="mt">
+          <label class="label">Segment kontrol</label>
+          <div class="segmented">
+            <input type="radio" name="seg" id="s1" checked /><label for="s1">Müşteri</label>
+            <input type="radio" name="seg" id="s2" /><label for="s2">Kurye</label>
+            <input type="radio" name="seg" id="s3" /><label for="s3">Yönetici</label>
+          </div>
+        </div>
+        <div class="mt">
+          <label class="label">Seçim kartları (bölge)</label>
+          <div class="pick" style="max-width:520px">
+            <input type="radio" name="zc" id="zc1" checked /><label for="zc1"><b>Akyaka</b><span>250 TL</span></label>
+            <input type="radio" name="zc" id="zc2" /><label for="zc2"><b>Gökova</b><span>350 TL</span></label>
+            <input type="radio" name="zc" id="zc3" /><label for="zc3"><b>Akçapınar</b><span>350 TL</span></label>
+          </div>
+        </div>
+      </section>
+
+      <!-- BADGES / CHIPS -->
+      <section class="card">
+        <p class="eyebrow">Rozetler &amp; etiketler</p><h2 class="mb">Durum göstergeleri</h2>
+        <div class="row">
+          <span class="badge badge--primary"><span class="dot"></span> Alışverişte</span>
+          <span class="badge badge--amber"><span class="dot"></span> Yolda</span>
+          <span class="badge badge--sage"><span class="dot"></span> Teslim</span>
+          <span class="badge badge--danger"><span class="dot"></span> Ek ödeme</span>
+          <span class="badge badge--plum">Bloke</span>
+          <span class="badge badge--muted">Taslak</span>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <span class="chip chip--active">Tümü</span><span class="chip">Aktif</span><span class="chip">Teslim</span>
+        </div>
+      </section>
+
+      <!-- ALERTS -->
+      <section class="card">
+        <p class="eyebrow">Uyarılar</p><h2 class="mb">Geri bildirim</h2>
+        <div class="stack">
+          <div class="alert alert--info"><span class="alert__ic">ℹ</span><div>Tahmin yalnızca ön hesaptır; gerçek fişe göre kesilir.</div></div>
+          <div class="alert alert--ok"><span class="alert__ic">✓</span><div>Sipariş bloke edildi ve kuryeye iletildi.</div></div>
+          <div class="alert alert--warn"><span class="alert__ic">!</span><div>Bakiyen bu sipariş için sınırda görünüyor.</div></div>
+          <div class="alert alert--danger"><span class="alert__ic">⚠</span><div>Fiş blokeyi aştı — 80 TL ek ödeme gerekiyor.</div></div>
+        </div>
+      </section>
+
+      <!-- STATS + PROGRESS -->
+      <section class="card">
+        <p class="eyebrow">Kartlar</p><h2 class="mb">İstatistik &amp; ilerleme</h2>
+        <div class="stats mb">
+          <div class="stat stat--primary"><div class="k">Bakiye</div><div class="v">1.000 <small>TL</small></div></div>
+          <div class="stat stat--plum"><div class="k">Bloke</div><div class="v">753 <small>TL</small></div></div>
+          <div class="stat"><div class="k">Sipariş</div><div class="v">7</div></div>
+        </div>
+        <label class="label">İlerleme</label>
+        <div class="progress"><i style="width:62%"></i></div>
+      </section>
+
+      <!-- TICKET + TIMELINE -->
+      <section class="grid cols-2">
+        <div class="ticket">
+          <p class="eyebrow">Fiş motifi</p><h3 style="margin:2px 0 4px">Ön hesap</h3>
+          <hr class="ticket__perf" />
+          <div class="ticket__row"><span>Ürün</span><b>430 TL</b></div>
+          <div class="ticket__row"><span>%15 pay</span><b>65 TL</b></div>
+          <div class="ticket__row"><span>Teslimat</span><b>250 TL</b></div>
+          <hr class="ticket__perf" />
+          <div class="ticket__row ticket__row--total"><span>Toplam</span><b>745 TL</b></div>
+        </div>
+        <div class="card">
+          <p class="eyebrow">Zaman çizelgesi</p><h3 style="margin:2px 0 14px">Sipariş adımları</h3>
+          <div class="steps">
+            <div class="step done"><div class="bul">✓</div><small>Bloke</small></div>
+            <div class="step done"><div class="bul">✓</div><small>Atandı</small></div>
+            <div class="step now"><div class="bul">●</div><small>Alışverişte</small></div>
+            <div class="step"><div class="bul">4</div><small>Teslim</small></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TABLE + AVATARS + PAGINATION -->
+      <section class="card">
+        <p class="eyebrow">Tablo &amp; liste</p><h2 class="mb">Veri sunumu</h2>
+        <div class="tablewrap">
+          <table class="tbl">
+            <thead><tr><th>Kurye</th><th>Bölge</th><th>Durum</th><th class="num">Tutar</th></tr></thead>
+            <tbody>
+              <tr><td><div class="media"><span class="avatar avatar--sm">MK</span><div><b>Mert K.</b><small>4.9 ★</small></div></div></td><td>Akyaka</td><td><span class="badge badge--sage">Aktif</span></td><td class="num">753</td></tr>
+              <tr><td><div class="media"><span class="avatar avatar--sm">DY</span><div><b>Deniz Y.</b><small>4.8 ★</small></div></div></td><td>Gökova</td><td><span class="badge badge--amber">Yolda</span></td><td class="num">612</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <nav class="pager"><a href="#">‹</a><a href="#" class="is-active">1</a><a href="#">2</a><a href="#">3</a><a href="#">›</a></nav>
+      </section>
+
+      <!-- EMPTY + MODAL -->
+      <section class="grid cols-2">
+        <div class="empty">
+          <div class="em">🧺</div>
+          <h3 style="margin:8px 0 4px">Henüz sipariş yok</h3>
+          <p class="muted">İlk siparişini oluşturmak için başla.</p>
+          <a class="btn btn--primary btn--sm" href="customer/dashboard.html" style="margin-top:12px">Sipariş oluştur</a>
+        </div>
+        <div class="modal-demo">
+          <div class="spread"><h3>Siparişi onayla</h3><button class="btn btn--icon btn--sm" style="width:34px;height:34px">✕</button></div>
+          <p class="muted" style="margin:8px 0 16px">745 TL cüzdanından bloke edilecek. Onaylıyor musun?</p>
+          <div class="row"><button class="btn btn--primary">Onayla</button><button class="btn btn--ghost">Vazgeç</button></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

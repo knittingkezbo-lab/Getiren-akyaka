@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Getiren · Akyaka — Deniz Esintisi (v1)</title>
+<style>
+  :root{
+    --bg:#eef7f4; --surface:#ffffff; --surface-2:#f6fbf9;
+    --ink:#12302c; --muted:#5c7a74; --line:#e3ede9;
+    --teal:#0e9c90; --teal-strong:#0b7d73; --teal-ink:#063f3a;
+    --coral:#ff7a4d; --gold:#f5b13c; --sky:#3aa7c9;
+    --ok:#16a34a; --warn:#e08a00; --danger:#dc4b3e;
+    --r-lg:26px; --r-md:18px; --r-sm:12px;
+    --shadow:0 24px 50px -28px rgba(9,80,72,.55);
+    --shadow-sm:0 10px 26px -18px rgba(9,80,72,.5);
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    color:var(--ink); background:var(--bg); min-height:100vh; line-height:1.5;
+    background-image:
+      radial-gradient(60rem 30rem at 8% -8%, #ffd9a233, transparent 60%),
+      radial-gradient(56rem 30rem at 108% 4%, #7fe0cf40, transparent 55%);
+  }
+  h1,h2,h3{margin:0; letter-spacing:-.02em}
+  button{font:inherit; cursor:pointer; border:0; background:none}
+  input,textarea,select{font:inherit; color:var(--ink)}
+  .muted{color:var(--muted)}
+  .wrap{width:min(1140px,100%); margin:0 auto; padding:0 20px}
+
+  /* ---------- LOGIN ---------- */
+  #login{min-height:100vh; display:grid; place-items:center; padding:24px}
+  .auth{
+    width:min(940px,100%); display:grid; grid-template-columns:1.05fr .95fr;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
+    overflow:hidden; box-shadow:var(--shadow)}
+  .auth__brandside{
+    padding:40px 36px; color:#eafffb; position:relative; overflow:hidden;
+    background:linear-gradient(150deg,#0b6f66 0%,#0e9c90 52%,#14b8a6 100%)}
+  .auth__brandside::after{content:"";position:absolute;inset:auto -20% -40% -20%;height:60%;
+    background:radial-gradient(closest-side,#ffffff22,transparent);}
+  .auth__brandside h2{font-size:30px; margin:18px 0 10px; line-height:1.1}
+  .auth__brandside p{color:#d3fff6; max-width:34ch}
+  .auth__points{list-style:none; padding:0; margin:26px 0 0; display:grid; gap:12px}
+  .auth__points li{display:flex; gap:10px; align-items:center; color:#ecfffb; font-weight:600}
+  .auth__points .dot{width:22px;height:22px;border-radius:999px;display:grid;place-items:center;
+    background:#ffffff26; color:#fff; font-size:13px}
+  .auth__form{padding:40px 36px}
+  .auth__form h3{font-size:22px}
+  .field{margin-top:16px}
+  .field label{display:block; font-size:12.5px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--muted); margin-bottom:7px}
+  .input{width:100%; padding:13px 15px; border:1px solid var(--line); border-radius:var(--r-md);
+    background:var(--surface-2); outline:0; transition:.15s}
+  .input:focus{border-color:var(--teal); box-shadow:0 0 0 4px #0e9c9022; background:#fff}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:13px 18px; border-radius:999px; font-weight:800; transition:.15s; white-space:nowrap}
+  .btn--primary{background:linear-gradient(135deg,var(--teal),var(--teal-strong)); color:#fff;
+    box-shadow:0 14px 26px -12px #0e9c90aa}
+  .btn--primary:hover{filter:brightness(1.05); transform:translateY(-1px)}
+  .btn--coral{background:linear-gradient(135deg,#ff8a5c,var(--coral)); color:#3a1607;
+    box-shadow:0 14px 26px -12px #ff7a4daa}
+  .btn--ghost{background:var(--surface-2); color:var(--teal-strong); border:1px solid var(--line)}
+  .btn--block{width:100%}
+  .btn:disabled{opacity:.45; cursor:not-allowed; transform:none; box-shadow:none}
+  .auth__alt{margin-top:18px; font-size:14px; color:var(--muted); text-align:center}
+  .link{color:var(--teal-strong); font-weight:800}
+
+  .brandmark{display:inline-flex; align-items:center; gap:10px; font-weight:900; font-size:19px; letter-spacing:-.03em}
+  .brandmark .logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
+    background:#ffffff1f; color:#fff}
+  .brandmark small{font-weight:900; color:#ffd9a2}
+
+  /* ---------- APP SHELL ---------- */
+  #app[hidden]{display:none}
+  .topbar{position:sticky; top:0; z-index:20; backdrop-filter:blur(14px);
+    background:#ffffffcc; border-bottom:1px solid var(--line)}
+  .topbar__in{display:flex; align-items:center; gap:14px; padding:12px 0}
+  .topbar .brandmark{color:var(--ink)}
+  .topbar .brandmark .logo{background:linear-gradient(135deg,var(--teal),var(--teal-strong)); color:#fff}
+  .topbar .brandmark small{color:var(--coral)}
+  .spacer{flex:1}
+  .wallet-chip{display:flex; align-items:center; gap:8px; padding:8px 13px; border-radius:999px;
+    background:var(--surface-2); border:1px solid var(--line); font-weight:800; font-size:14px}
+  .wallet-chip b{color:var(--teal-strong)}
+  .avatar{width:38px;height:38px;border-radius:999px; display:grid; place-items:center; font-weight:900;
+    color:#fff; background:linear-gradient(135deg,#0e9c90,#3aa7c9)}
+
+  .rolebar{position:sticky; top:63px; z-index:15; background:transparent; padding:16px 0 6px}
+  .segmented{display:inline-flex; gap:4px; padding:5px; border-radius:999px; background:#fff;
+    border:1px solid var(--line); box-shadow:var(--shadow-sm); max-width:100%; overflow:auto}
+  .segmented button{padding:9px 16px; border-radius:999px; font-weight:800; color:var(--muted);
+    white-space:nowrap; display:flex; gap:7px; align-items:center}
+  .segmented button.active{background:linear-gradient(135deg,var(--teal),var(--teal-strong)); color:#fff}
+
+  main{padding:8px 0 60px}
+  .view[hidden]{display:none}
+  .pagehead{margin:14px 0 18px}
+  .pagehead .eyebrow{color:var(--coral); font-weight:900; text-transform:uppercase; letter-spacing:.14em; font-size:12.5px}
+  .pagehead h1{font-size:clamp(28px,4.4vw,42px); margin:6px 0 6px; line-height:1.02}
+  .pagehead p{color:var(--muted); max-width:60ch; margin:0}
+
+  .grid{display:grid; gap:16px}
+  .cols-2{grid-template-columns:1.05fr .95fr}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
+    padding:22px; box-shadow:var(--shadow-sm)}
+  .card h3{font-size:17px; display:flex; align-items:center; gap:8px}
+  .card .sub{color:var(--muted); font-size:14px; margin:2px 0 0}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  .chip{padding:8px 12px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line);
+    font-weight:700; font-size:13px}
+  .chip--teal{background:#0e9c901a; border-color:#0e9c9033; color:var(--teal-strong)}
+
+  .segzones{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px}
+  .zone{border:1px solid var(--line); border-radius:var(--r-md); padding:12px; text-align:left;
+    background:var(--surface-2); transition:.15s}
+  .zone:hover{border-color:#0e9c9066}
+  .zone.active{border-color:var(--teal); background:#0e9c900f; box-shadow:0 0 0 3px #0e9c9022}
+  .zone b{display:block; font-size:14px}
+  .zone span{font-size:12.5px; color:var(--muted)}
+
+  /* estimate panel (dark, contrasty) */
+  .estimate{background:linear-gradient(160deg,#0c322e,#124a43); color:#eafffb; border-color:#1c5b52}
+  .estimate h3{color:#fff}
+  .est-empty{min-height:230px; display:grid; place-items:center; text-align:center; color:#a9d6cd;
+    border:1px dashed #ffffff2e; border-radius:var(--r-md); padding:20px}
+  .metric{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 15px;
+    border-radius:var(--r-md); background:#ffffff10; border:1px solid #ffffff18; margin-top:9px}
+  .metric span{color:#bfe4dc; font-weight:700; font-size:14px}
+  .metric b{font-size:19px}
+  .metric.total{background:linear-gradient(135deg,var(--coral),var(--gold)); color:#2c1204; border:0}
+  .metric.total span{color:#3a1607}
+  .est-note{margin-top:14px; color:#cdeee7; font-size:13.5px}
+
+  /* timeline / stepper */
+  .stepper{display:flex; gap:6px; margin-top:16px; overflow:auto; padding-bottom:4px}
+  .step{flex:1; min-width:96px; text-align:center}
+  .step .bul{width:30px;height:30px;border-radius:999px;margin:0 auto 8px; display:grid;place-items:center;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--muted); font-weight:900; font-size:13px}
+  .step small{font-size:12px; color:var(--muted); font-weight:700}
+  .step.done .bul{background:var(--teal); border-color:var(--teal); color:#fff}
+  .step.done small{color:var(--teal-strong)}
+  .step.now .bul{background:#fff; border-color:var(--coral); color:var(--coral); box-shadow:0 0 0 4px #ff7a4d22}
+  .step.now small{color:var(--coral)}
+
+  /* orders / list */
+  .stack{display:grid; gap:12px}
+  .order{border:1px solid var(--line); border-radius:var(--r-md); padding:16px; background:var(--surface)}
+  .order__top{display:flex; justify-content:space-between; gap:10px; align-items:start}
+  .order__top b{font-size:15px}
+  .badge{font-size:11.5px; font-weight:900; padding:5px 10px; border-radius:999px; letter-spacing:.02em; white-space:nowrap}
+  .badge--reserved{background:#3aa7c91a; color:#1f7d99}
+  .badge--shopping{background:#f5b13c22; color:#a5720b}
+  .badge--way{background:#ff7a4d1f; color:#c1471f}
+  .badge--delivered{background:#16a34a1a; color:#137a38}
+  .badge--extra{background:#dc4b3e1a; color:#b23328}
+  .order__meta{display:flex; flex-wrap:wrap; gap:10px 18px; margin-top:10px; color:var(--muted); font-size:13.5px}
+  .order__meta b{color:var(--ink)}
+  .order__actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  .btn--sm{padding:9px 14px; font-size:13.5px}
+
+  .items{display:grid; gap:8px; margin-top:12px}
+  .item{display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center;
+    padding:10px 12px; border-radius:var(--r-sm); background:var(--surface-2); border:1px solid var(--line)}
+  .item input{width:88px; text-align:right; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:#fff}
+  .item .q{width:56px}
+
+  /* admin stats + table */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+  .stat{background:var(--surface); border:1px solid var(--line); border-radius:var(--r-md); padding:16px 18px}
+  .stat .k{color:var(--muted); font-weight:700; font-size:13px}
+  .stat .v{font-size:26px; font-weight:900; letter-spacing:-.03em; margin-top:4px}
+  .stat .v small{font-size:14px; color:var(--muted); font-weight:800}
+  .stat.accent{background:linear-gradient(140deg,#0e9c90,#0b7d73); color:#fff; border:0}
+  .stat.accent .k{color:#cdeee7}
+
+  .tablewrap{overflow:auto; border:1px solid var(--line); border-radius:var(--r-md); margin-top:14px; background:#fff}
+  table{width:100%; border-collapse:collapse; min-width:640px}
+  th,td{padding:13px 16px; text-align:left; border-bottom:1px solid var(--line); font-size:14px}
+  th{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); background:var(--surface-2)}
+  tr:last-child td{border-bottom:0}
+  .num{text-align:right; font-variant-numeric:tabular-nums}
+
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:6px}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:#eafffb; padding:12px 18px; border-radius:999px; font-weight:700; font-size:14px;
+    box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s; z-index:60}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  /* responsive */
+  @media (max-width:860px){
+    .auth{grid-template-columns:1fr}
+    .auth__brandside{display:none}
+    .cols-2{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:560px){
+    .segzones{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr}
+    .topbar .brandmark small{display:none}
+    .wallet-chip .lbl{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section id="login">
+  <div class="auth">
+    <div class="auth__brandside">
+      <div class="brandmark"><span class="logo">◎</span> getiren<small>akyaka</small></div>
+      <h2>Ne lazımsa yaz,<br/>bloke edelim, getirelim.</h2>
+      <p>Akyaka, Gökova ve Akçapınar için yerel concierge & kurye hizmeti. Ödediğin kadar, şeffaf.</p>
+      <ul class="auth__points">
+        <li><span class="dot">✓</span> Sipariş tutarı bloke edilir, gerçek fişe göre kesilir</li>
+        <li><span class="dot">✓</span> Fazlası anında cüzdana iade</li>
+        <li><span class="dot">✓</span> Kuryeni canlı takip et</li>
+      </ul>
+    </div>
+    <div class="auth__form">
+      <h3>Giriş yap</h3>
+      <p class="muted" style="margin:6px 0 0">Hesabınla devam et.</p>
+      <div class="field">
+        <label>E-posta</label>
+        <input class="input" type="email" value="gencer@bizsim.com" />
+      </div>
+      <div class="field">
+        <label>Şifre</label>
+        <input class="input" type="password" value="••••••••" />
+      </div>
+      <div style="margin-top:20px">
+        <button class="btn btn--primary btn--block" onclick="enterApp()">Giriş yap →</button>
+      </div>
+      <p class="auth__alt">Hesabın yok mu? <a class="link" href="#" onclick="enterApp();return false">Kayıt ol</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="wrap topbar__in">
+      <div class="brandmark"><span class="logo">◎</span> getiren<small>akyaka</small></div>
+      <div class="spacer"></div>
+      <div class="wallet-chip"><span class="lbl muted">Bakiye</span> <b id="wallet">1.000 TL</b></div>
+      <button class="btn btn--ghost btn--sm" onclick="topup()">+500</button>
+      <div class="avatar">GG</div>
+    </div>
+  </header>
+
+  <div class="rolebar">
+    <div class="wrap">
+      <div class="segmented">
+        <button class="active" data-role="customer" onclick="setRole('customer')">🛒 Müşteri</button>
+        <button data-role="courier" onclick="setRole('courier')">🛵 Kurye</button>
+        <button data-role="admin" onclick="setRole('admin')">📊 Yönetici</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <!-- CUSTOMER -->
+    <section class="view" id="v-customer">
+      <div class="pagehead">
+        <div class="eyebrow">Müşteri</div>
+        <h1>Siparişini oluştur</h1>
+        <p>Ne lazımsa serbestçe yaz — tahmini çıkaralım, onaylayınca cüzdanından bloke edelim.</p>
+      </div>
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>🧺 Sipariş</h3>
+          <div class="field">
+            <label>Ne getirelim?</label>
+            <textarea class="input" id="orderText" rows="4">1 kutu süt, 2 ağrı kesici, ekmek</textarea>
+          </div>
+          <div class="field">
+            <label>Bölge</label>
+            <div class="segzones" id="zones">
+              <button class="zone active" data-zone="akyaka" data-fee="250"><b>Akyaka Merkez</b><span>250 TL</span></button>
+              <button class="zone" data-zone="gokova" data-fee="350"><b>Gökova</b><span>350 TL</span></button>
+              <button class="zone" data-zone="akcapinar" data-fee="350"><b>Akçapınar</b><span>350 TL</span></button>
+            </div>
+          </div>
+          <div class="toolbar" style="margin-top:18px">
+            <button class="btn btn--ghost" onclick="doEstimate()">Tahmin et</button>
+            <button class="btn btn--coral" id="reserveBtn" onclick="reserve()">Onayla ve bloke et</button>
+          </div>
+          <div class="chips">
+            <span class="chip chip--teal">%15 güvenlik payı</span>
+            <span class="chip">Fazlası iade</span>
+            <span class="chip">Canlı takip</span>
+          </div>
+        </div>
+
+        <div class="card estimate" id="estimateCard">
+          <h3>Tahmin</h3>
+          <p class="sub" style="color:#bfe4dc">Gerçek fiş düşük çıkarsa fark cüzdana iade edilir.</p>
+          <div id="estimateBody"><div class="est-empty">Henüz tahmin yok.<br/>“Tahmin et”e dokun.</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h3>🚚 Aktif sipariş durumu</h3>
+        <p class="sub">Sipariş #A24-118 · Akyaka Merkez</p>
+        <div class="stepper">
+          <div class="step done"><div class="bul">✓</div><small>Bloke</small></div>
+          <div class="step done"><div class="bul">✓</div><small>Kurye atandı</small></div>
+          <div class="step now"><div class="bul">●</div><small>Alışverişte</small></div>
+          <div class="step"><div class="bul">3</div><small>Yolda</small></div>
+          <div class="step"><div class="bul">4</div><small>Teslim</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COURIER -->
+    <section class="view" id="v-courier" hidden>
+      <div class="pagehead">
+        <div class="eyebrow">Kurye</div>
+        <h1>Sana atanan siparişler</h1>
+        <p>Alışverişte fişteki gerçek fiyatları gir, durumu ilerlet.</p>
+      </div>
+      <div class="stack">
+        <div class="order">
+          <div class="order__top">
+            <b>1 kutu süt · 2 ağrı kesici · ekmek</b>
+            <span class="badge badge--shopping">Alışverişte</span>
+          </div>
+          <div class="order__meta">
+            <span>📍 <b>Akyaka Merkez</b></span>
+            <span>🔒 Bloke <b>753 TL</b></span>
+            <span>👤 Gencer G.</span>
+          </div>
+          <div class="items">
+            <div class="item"><span>Süt (1)</span><input class="q" value="1"/><input value="52 TL"/></div>
+            <div class="item"><span>Ağrı kesici (2)</span><input class="q" value="2"/><input value="310 TL"/></div>
+            <div class="item"><span>Ekmek</span><input class="q" value="1"/><input value="15 TL"/></div>
+          </div>
+          <div class="order__actions">
+            <button class="btn btn--ghost btn--sm">Yola çıktım</button>
+            <button class="btn btn--primary btn--sm" onclick="toast('Fiş girildi · fark iade edildi')">Fiş gir ve kapat</button>
+          </div>
+        </div>
+
+        <div class="order">
+          <div class="order__top">
+            <b>Kahve · su (6’lı) · 1 ekmek</b>
+            <span class="badge badge--reserved">Yeni · Bekliyor</span>
+          </div>
+          <div class="order__meta">
+            <span>📍 <b>Gökova</b></span>
+            <span>🔒 Bloke <b>612 TL</b></span>
+            <span>👤 Selin A.</span>
+          </div>
+          <div class="order__actions">
+            <button class="btn btn--coral btn--sm" onclick="toast('Sipariş üstlenildi')">Üstlen</button>
+            <button class="btn btn--ghost btn--sm">Detay</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="view" id="v-admin" hidden>
+      <div class="pagehead">
+        <div class="eyebrow">Yönetici</div>
+        <h1>Operasyon paneli</h1>
+        <p>Bugünkü akış, bloke tutarlar ve kurye ataması.</p>
+      </div>
+      <div class="stats">
+        <div class="stat accent"><div class="k">Bugünkü sipariş</div><div class="v">18</div></div>
+        <div class="stat"><div class="k">Aktif kurye</div><div class="v">4</div></div>
+        <div class="stat"><div class="k">Bloke tutar</div><div class="v">9.240 <small>TL</small></div></div>
+        <div class="stat"><div class="k">Tahsil (ciro)</div><div class="v">6.180 <small>TL</small></div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="order__top">
+          <div><h3>Siparişler</h3><p class="sub">Son 12 kayıt</p></div>
+          <button class="btn btn--ghost btn--sm">Ayarlar · fiyat/%pay</button>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>#</th><th>Müşteri</th><th>Bölge</th><th>Durum</th><th class="num">Bloke</th><th class="num">Fiş</th><th>Kurye</th></tr></thead>
+            <tbody>
+              <tr><td>A24-118</td><td>Gencer G.</td><td>Akyaka</td><td><span class="badge badge--shopping">Alışverişte</span></td><td class="num">753</td><td class="num">—</td><td>Mert K.</td></tr>
+              <tr><td>A24-117</td><td>Selin A.</td><td>Gökova</td><td><span class="badge badge--way">Yolda</span></td><td class="num">612</td><td class="num">—</td><td>Deniz Y.</td></tr>
+              <tr><td>A24-116</td><td>Barış T.</td><td>Akçapınar</td><td><span class="badge badge--delivered">Teslim</span></td><td class="num">905</td><td class="num">742</td><td>Mert K.</td></tr>
+              <tr><td>A24-115</td><td>Elif D.</td><td>Akyaka</td><td><span class="badge badge--extra">Ek ödeme</span></td><td class="num">480</td><td class="num">560</td><td>Deniz Y.</td></tr>
+              <tr><td>A24-114</td><td>Can P.</td><td>Gökova</td><td><span class="badge badge--reserved">Bloke</span></td><td class="num">330</td><td class="num">—</td><td><button class="btn btn--coral btn--sm" onclick="toast('Kurye atandı')">Ata</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const ZONES={akyaka:{name:'Akyaka Merkez',fee:250},gokova:{name:'Gökova',fee:350},akcapinar:{name:'Akçapınar',fee:350}};
+  const PRICES=[['ağrı',150],['ilaç',150],['kahve',120],['süt',50],['su',35],['ekmek',15]];
+  let wallet=1000, zone='akyaka';
+
+  const fmt=n=>Math.round(n).toLocaleString('tr-TR');
+  function enterApp(){document.getElementById('login').hidden=true;document.getElementById('app').hidden=false;doEstimate();}
+  function setRole(r){
+    document.querySelectorAll('.segmented button').forEach(b=>b.classList.toggle('active',b.dataset.role===r));
+    ['customer','courier','admin'].forEach(v=>document.getElementById('v-'+v).hidden=(v!==r));
+  }
+  function topup(){wallet+=500;document.getElementById('wallet').textContent=fmt(wallet)+' TL';toast('+500 TL yüklendi');}
+
+  document.getElementById('zones').addEventListener('click',e=>{
+    const z=e.target.closest('.zone'); if(!z)return;
+    document.querySelectorAll('.zone').forEach(x=>x.classList.remove('active'));
+    z.classList.add('active'); zone=z.dataset.zone; doEstimate();
+  });
+
+  function estimate(text,zoneId){
+    const zn=ZONES[zoneId]||ZONES.akyaka;
+    const parts=String(text||'').toLocaleLowerCase('tr').split(/[,\n;]+/).map(s=>s.trim()).filter(Boolean);
+    if(!parts.length)return null;
+    let items=0;
+    for(const part of parts){
+      const qty=Number((part.match(/^(\d+)/)||[])[1]||1);
+      let price=40; // bilinmeyen kalem
+      for(const [w,p] of [...PRICES].sort((a,b)=>b[0].length-a[0].length)){
+        if(new RegExp('(^|[^a-zçğıöşü])'+w+'([^a-zçğıöşü]|$)','i').test(part)){price=p;break;}
+      }
+      items+=qty*price;
+    }
+    const buffer=Math.ceil(items*0.15);
+    return {items,buffer,fee:zn.fee,total:items+buffer+zn.fee,zoneName:zn.name};
+  }
+
+  function doEstimate(){
+    const e=estimate(document.getElementById('orderText').value,zone);
+    const body=document.getElementById('estimateBody');
+    if(!e){body.innerHTML='<div class="est-empty">Sipariş metni boş.</div>';return;}
+    body.innerHTML=`
+      <div class="metric"><span>Ürün tahmini</span><b>${fmt(e.items)} TL</b></div>
+      <div class="metric"><span>%15 güvenlik payı</span><b>${fmt(e.buffer)} TL</b></div>
+      <div class="metric"><span>Teslimat · ${e.zoneName}</span><b>${fmt(e.fee)} TL</b></div>
+      <div class="metric total"><span>Bloke edilecek</span><b>${fmt(e.total)} TL</b></div>
+      <p class="est-note">Onaylayınca ${fmt(e.total)} TL cüzdanından bloke edilir; gerçek fişe göre kesilir.</p>`;
+    document.getElementById('reserveBtn').disabled=wallet<e.total;
+  }
+  function reserve(){
+    const e=estimate(document.getElementById('orderText').value,zone);
+    if(!e)return;
+    if(wallet<e.total)return toast('Yetersiz bakiye');
+    wallet-=e.total;document.getElementById('wallet').textContent=fmt(wallet)+' TL';
+    toast('Sipariş bloke edildi · kuryeye düştü'); setRole('courier');
+  }
+
+  let tTimer;
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(tTimer);tTimer=setTimeout(()=>t.classList.remove('show'),2200);}
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sipariş takibi · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">🏠</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="order-new.html"><span class="nav__ic">➕</span> <span class="nav__label">Yeni sipariş</span></a>
+      <a class="nav__item is-active" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişlerim</span></a>
+      <a class="nav__item" href="wallet.html"><span class="nav__ic">💳</span> <span class="nav__label">Cüzdan</span></a>
+      <a class="nav__item" href="profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="dashboard.html" class="is-active">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm">GG</span>
+        <div><b style="font-size:14px">Gencer Ger</b><small>Müşteri · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Sipariş takibi</h1><p class="crumb"><a href="orders.html" style="color:var(--primary-2);font-weight:700">Siparişlerim</a> › #A24-118</p></div>
+      <div class="topbar__spacer"></div>
+      <span class="badge badge--primary"><span class="dot"></span> Alışverişte · ~15 dk</span>
+    </header>
+
+    <div class="content grid col-wide" style="align-items:start">
+      <!-- sol -->
+      <div class="stack">
+        <div class="card card--pad-sm">
+          <div class="map"><span class="route"></span><span class="home">🏠</span><span class="pin">📍</span></div>
+          <div class="spread" style="margin-top:14px">
+            <div class="media"><span class="avatar">MK</span>
+              <div><b>Mert K.</b><small class="muted">Kuryen · 4.9 ★ · Akyaka</small></div></div>
+            <div class="row"><a class="btn btn--ghost btn--sm" href="#">💬 Mesaj</a><a class="btn btn--soft btn--sm" href="#">📞 Ara</a></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom:16px">Sipariş durumu</h3>
+          <div class="steps">
+            <div class="step done"><div class="bul">✓</div><small>Bloke</small></div>
+            <div class="step done"><div class="bul">✓</div><small>Atandı</small></div>
+            <div class="step now"><div class="bul">●</div><small>Alışverişte</small></div>
+            <div class="step"><div class="bul">4</div><small>Yolda</small></div>
+            <div class="step"><div class="bul">5</div><small>Teslim</small></div>
+          </div>
+          <div class="alert alert--info" style="margin-top:18px">
+            <span class="alert__ic">🛒</span>
+            <div>Mert şu an markette. Ürünler bulundukça gerçek fiyatlar fişe işleniyor.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- sağ: fiş -->
+      <div class="ticket">
+        <div class="spread"><div><p class="eyebrow">Sipariş #A24-118</p><h3 style="margin-top:2px">Akyaka Merkez</h3></div></div>
+        <hr class="ticket__perf" />
+        <div class="stack-sm" style="gap:6px">
+          <div class="ticket__row"><span>1 kutu süt</span><b>~52 TL</b></div>
+          <div class="ticket__row"><span>2 ağrı kesici</span><b>~310 TL</b></div>
+          <div class="ticket__row"><span>Ekmek</span><b>~15 TL</b></div>
+        </div>
+        <hr class="ticket__perf" />
+        <div class="ticket__row"><span>Ürün (tahmini)</span><b>377 TL</b></div>
+        <div class="ticket__row"><span>%15 güvenlik payı</span><b>65 TL</b></div>
+        <div class="ticket__row"><span>Teslimat</span><b>250 TL</b></div>
+        <hr class="ticket__perf" />
+        <div class="ticket__row ticket__row--total"><span>Bloke</span><b>745 TL</b></div>
+        <div class="ticket__stub" style="margin-top:10px">
+          <span class="badge badge--sage">Fazlası iade</span>
+          <p class="hint" style="margin:0">Fiş kesinleşince fark cüzdanına döner.</p>
+        </div>
+        <a class="btn btn--ghost btn--block" href="#" style="margin-top:16px">Siparişi iptal et</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

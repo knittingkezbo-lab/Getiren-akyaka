@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panel · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item is-active" href="dashboard.html"><span class="nav__ic">🏠</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="order-new.html"><span class="nav__ic">➕</span> <span class="nav__label">Yeni sipariş</span></a>
+      <a class="nav__item" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişlerim</span></a>
+      <a class="nav__item" href="wallet.html"><span class="nav__ic">💳</span> <span class="nav__label">Cüzdan</span></a>
+      <a class="nav__item" href="profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="dashboard.html" class="is-active">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm">GG</span>
+        <div><b style="font-size:14px">Gencer Ger</b><small>Müşteri · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Merhaba Gencer 👋</h1><p class="crumb">Bugün ne getirelim?</p></div>
+      <div class="topbar__spacer"></div>
+      <div class="walletchip"><span class="muted">Cüzdan</span> <b>1.000 TL</b></div>
+      <a class="btn btn--soft btn--sm" href="wallet.html">+ Yükle</a>
+      <button class="btn btn--icon" title="Bildirimler">🔔</button>
+    </header>
+
+    <div class="content stack" style="gap:20px">
+
+      <!-- hero CTA -->
+      <a href="order-new.html" class="card" style="background:linear-gradient(150deg,var(--primary),#e6863f); color:#fff; border:0; text-decoration:none; display:block">
+        <div class="spread" style="align-items:center; flex-wrap:wrap; gap:16px">
+          <div style="max-width:44ch">
+            <p class="eyebrow" style="color:#ffe1cf">Yeni sipariş</p>
+            <h2 style="color:#fff; font-size:27px; margin:4px 0 6px">Ne lazımsa yaz, gerisini bize bırak.</h2>
+            <p style="color:#ffe7d8">Tutarı bloke ederiz, gerçek fişe göre keser, fazlasını iade ederiz.</p>
+          </div>
+          <span class="btn" style="background:#fff; color:var(--primary-2)">Sipariş oluştur →</span>
+        </div>
+      </a>
+
+      <!-- active order -->
+      <div class="card">
+        <div class="card__head">
+          <div><p class="eyebrow">Aktif sipariş · #A24-118</p><h2>1 kutu süt · 2 ağrı kesici · ekmek</h2></div>
+          <span class="badge badge--primary"><span class="dot"></span> Alışverişte</span>
+        </div>
+        <div class="steps">
+          <div class="step done"><div class="bul">✓</div><small>Bloke</small></div>
+          <div class="step done"><div class="bul">✓</div><small>Kurye atandı</small></div>
+          <div class="step now"><div class="bul">●</div><small>Alışverişte</small></div>
+          <div class="step"><div class="bul">4</div><small>Yolda</small></div>
+          <div class="step"><div class="bul">5</div><small>Teslim</small></div>
+        </div>
+        <hr class="ticket__perf" />
+        <div class="spread">
+          <div class="media"><span class="avatar avatar--sm">MK</span><div><b>Mert K.</b><small class="muted">Kuryen · 4.9 ★</small></div></div>
+          <a class="btn btn--ghost btn--sm" href="order-track.html">Takip et →</a>
+        </div>
+      </div>
+
+      <!-- light stats -->
+      <div class="stats">
+        <div class="stat"><div class="k">💳 Kullanılabilir</div><div class="v">1.000 <small>TL</small></div></div>
+        <div class="stat"><div class="k">🔒 Bloke</div><div class="v">753 <small>TL</small></div></div>
+        <div class="stat"><div class="k">📦 Bu ay</div><div class="v">7 <small>sipariş</small></div></div>
+      </div>
+
+      <!-- recent -->
+      <div class="card card--pad-sm">
+        <div class="card__head" style="margin-bottom:4px">
+          <h3>Son siparişler</h3>
+          <a href="orders.html" class="hint" style="font-weight:800; color:var(--primary-2)">Tümü →</a>
+        </div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3); color:var(--ink-soft)">🧾</span><div><b>Kahve · su · ekmek</b><small class="muted">Gökova · 2 gün önce</small></div></div>
+          <div class="row"><span class="badge badge--sage">Teslim</span><b class="num">612 TL</b></div>
+        </div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3); color:var(--ink-soft)">🧾</span><div><b>Zeytinyağı · 2 ekmek</b><small class="muted">Akyaka · 4 gün önce</small></div></div>
+          <div class="row"><span class="badge badge--danger">Ek ödeme</span><b class="num">560 TL</b></div>
+        </div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3); color:var(--ink-soft)">🧾</span><div><b>Gazete · sigara · çakmak</b><small class="muted">Akçapınar · geçen hafta</small></div></div>
+          <div class="row"><span class="badge badge--sage">Teslim</span><b class="num">395 TL</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Getiren - Akyaka</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app">
+    <nav class="nav">
+      <strong>getiren<span>akyaka</span></strong>
+      <small>concierge demo</small>
+    </nav>
+
+    <section class="hero">
+      <p class="eyebrow">Getiren - Akyaka</p>
+      <h1>Ne lazımsa yaz, bloke edelim, getirelim.</h1>
+      <p class="muted">Yerel concierge/kurye akışı. Demo verisi tarayıcıda tutulur.</p>
+      <div class="chips">
+        <span>Akyaka içi 250 TL</span>
+        <span>Çevre 350 TL</span>
+        <span>%15 güvenlik payı</span>
+      </div>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Demo ekranları">
+      <button id="customerTab" class="tab active" data-view="customer">Müşteri</button>
+      <button id="adminTab" class="tab" data-view="admin">Admin</button>
+    </div>
+
+    <section id="customerView" class="card grid two customer-card view active">
+      <div class="panel">
+        <h2>Müşteri siparişi</h2>
+        <label>Bakiye</label>
+        <div class="money"><span id="wallet">0</span> TL</div>
+        <button id="topup" class="ghost">+500 TL yükle</button>
+        <label>Sipariş</label>
+        <textarea id="text" rows="4">1 kutu süt, 2 ağrı kesici</textarea>
+        <label>Bölge</label>
+        <select id="zone">
+          <option value="center">Akyaka İçi - 250 TL</option>
+          <option value="outer" selected>Akçapınar / Gökova / Ataköy - 350 TL</option>
+        </select>
+        <button id="estimate">Tahmin et</button>
+        <button id="reserve" class="primary">Onayla ve bloke et</button>
+      </div>
+      <div class="panel result-panel">
+        <h2>Tahmin</h2>
+        <div id="estimateBox" class="estimate-empty">Henüz tahmin yok.</div>
+      </div>
+    </section>
+
+    <section id="adminView" class="card grid two view">
+      <div class="panel">
+        <h2>Admin</h2>
+        <label>Gerçek fiş tutarı</label>
+        <input id="receipt" type="number" value="320" />
+        <button id="settle">Fişi gir / kapat</button>
+        <button id="extra" class="ghost" disabled>Ek bakiye bildirimi gönder</button>
+        <p id="extraHint" class="hint">Eksik bakiye oluşunca otomatik açılır.</p>
+      </div>
+      <div class="panel">
+        <h2>Siparişler</h2>
+        <div id="orders" class="orders"></div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>İş #A24-118 · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">🛵</span> <span class="nav__label">İşler</span></a>
+      <a class="nav__item is-active" href="order.html"><span class="nav__ic">📦</span> <span class="nav__label">Aktif iş</span></a>
+      <a class="nav__item" href="../customer/profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="../customer/dashboard.html">Müşteri</a>
+        <a href="dashboard.html" class="is-active">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm" style="background:linear-gradient(140deg,#5c7a5f,#e19a2b)">MK</span>
+        <div><b style="font-size:14px">Mert K.</b><small>Kurye · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>İş #A24-118</h1><p class="crumb"><a href="dashboard.html" style="color:var(--primary-2);font-weight:700">İşler</a> › Aktif iş</p></div>
+      <div class="topbar__spacer"></div>
+      <span class="badge badge--primary"><span class="dot"></span> Alışverişte</span>
+    </header>
+
+    <div class="content grid col-wide" style="align-items:start">
+      <!-- sol -->
+      <div class="stack">
+        <!-- müşteri -->
+        <div class="card card--pad-sm">
+          <div class="spread">
+            <div class="media"><span class="avatar">GG</span><div><b>Gencer Ger</b><small class="muted">Müşteri · +90 5xx xxx xx xx</small></div></div>
+            <div class="row"><a class="btn btn--ghost btn--sm" href="#">💬</a><a class="btn btn--soft btn--sm" href="#">📞 Ara</a></div>
+          </div>
+          <hr class="ticket__perf" />
+          <div class="stack-sm" style="gap:6px; font-size:14px">
+            <div class="spread"><span class="muted">📍 Teslimat</span><b>Akyaka Merkez · Şirinyer Mah. Deniz Sk.</b></div>
+            <div class="spread"><span class="muted">📝 Not</span><b>Zil çalışmıyor, arayın lütfen</b></div>
+          </div>
+        </div>
+
+        <!-- kalemler -->
+        <div class="card">
+          <div class="card__head"><div><p class="eyebrow">Kalemler</p><h2>Fiş fiyatlarını gir</h2></div>
+            <button class="btn btn--soft btn--sm">+ Kalem ekle</button></div>
+          <div class="stack-sm">
+            <div class="list__row">
+              <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🥛</span><div><b>Süt</b><small class="muted">1 adet</small></div></div>
+              <div class="input-group" style="width:130px"><input class="input" value="52" /><span class="addon">TL</span></div>
+            </div>
+            <div class="list__row">
+              <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">💊</span><div><b>Ağrı kesici</b><small class="muted">2 adet</small></div></div>
+              <div class="input-group" style="width:130px"><input class="input" value="310" /><span class="addon">TL</span></div>
+            </div>
+            <div class="list__row">
+              <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🍞</span><div><b>Ekmek</b><small class="muted">1 adet</small></div></div>
+              <div class="input-group" style="width:130px"><input class="input" value="15" /><span class="addon">TL</span></div>
+            </div>
+          </div>
+          <hr class="ticket__perf" />
+          <div class="spread"><b>Fiş ara toplamı</b><b class="num" style="font-family:var(--serif); font-size:20px">377 TL</b></div>
+        </div>
+
+        <!-- durum -->
+        <div class="card">
+          <h3 style="margin-bottom:16px">Durumu ilerlet</h3>
+          <div class="steps">
+            <div class="step done"><div class="bul">✓</div><small>Bloke</small></div>
+            <div class="step done"><div class="bul">✓</div><small>Üstlenildi</small></div>
+            <div class="step now"><div class="bul">●</div><small>Alışverişte</small></div>
+            <div class="step"><div class="bul">4</div><small>Yolda</small></div>
+            <div class="step"><div class="bul">5</div><small>Teslim</small></div>
+          </div>
+          <div class="row" style="margin-top:18px">
+            <button class="btn btn--ghost">Alışverişi bitirdim</button>
+            <button class="btn btn--ghost">Yola çıktım</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- sağ: kapatma -->
+      <div class="order-summary">
+        <div class="ticket">
+          <p class="eyebrow">Siparişi kapat</p><h3 style="margin:2px 0 4px">Tahsilat</h3>
+          <hr class="ticket__perf" />
+          <div class="ticket__row"><span>Bloke edilen</span><b>745 TL</b></div>
+          <div class="ticket__row"><span>Fiş (ürünler)</span><b>377 TL</b></div>
+          <div class="ticket__row"><span>Hizmet bedeli</span><b>250 TL</b></div>
+          <hr class="ticket__perf" />
+          <div class="ticket__row ticket__row--total"><span>Tahsil edilecek</span><b>627 TL</b></div>
+          <div class="ticket__row"><span>Müşteriye iade</span><b class="num" style="color:#3f7a4a">+118 TL</b></div>
+
+          <div class="field" style="margin:16px 0 0"><label class="label">Toplam fiş tutarı</label>
+            <div class="input-group"><input class="input" value="377" /><span class="addon">TL</span></div></div>
+
+          <div class="alert alert--warn" style="margin-top:12px">
+            <span class="alert__ic">!</span>
+            <div>Fiş blokeyi aşarsa müşteriden <b>ek ödeme</b> istenir; sipariş “ek ödeme bekliyor” olur.</div>
+          </div>
+
+          <button class="btn btn--primary btn--block btn--lg" style="margin-top:14px">Fiş gir ve kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stickybar">
+      <div><small class="muted">Tahsil</small><br/><b>627 TL</b></div>
+      <button class="btn btn--primary">Fiş gir ve kapat</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

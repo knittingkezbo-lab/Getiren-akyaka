@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kuryeler · Yönetici · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">📊</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişler</span></a>
+      <a class="nav__item is-active" href="couriers.html"><span class="nav__ic">🛵</span> <span class="nav__label">Kuryeler</span></a>
+      <a class="nav__item" href="settings.html"><span class="nav__ic">⚙️</span> <span class="nav__label">Ayarlar</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="../customer/dashboard.html">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="dashboard.html" class="is-active">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm" style="background:linear-gradient(140deg,#7c4a63,#2b2320)">AY</span>
+        <div><b style="font-size:14px">Ayşe Y.</b><small>Yönetici</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Kuryeler</h1><p class="crumb">Ekip · durum ve performans</p></div>
+      <div class="topbar__spacer"></div>
+      <button class="btn btn--primary btn--sm">+ Kurye ekle</button>
+    </header>
+
+    <div class="content stack">
+      <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat"><div class="k">🟢 Müsait</div><div class="v">2</div></div>
+        <div class="stat"><div class="k">🟠 Meşgul</div><div class="v">2</div></div>
+        <div class="stat"><div class="k">⚪ Çevrimdışı</div><div class="v">1</div></div>
+      </div>
+
+      <div class="grid cols-3">
+        <!-- courier card -->
+        <div class="card">
+          <div class="spread"><div class="media"><span class="avatar" style="background:linear-gradient(140deg,#5c7a5f,#e19a2b)">MK</span>
+            <div><b>Mert K.</b><small class="muted">Akyaka · 4.9 ★</small></div></div>
+            <span class="badge badge--amber">Meşgul</span></div>
+          <hr class="ticket__perf" />
+          <div class="spread" style="font-size:14px"><span class="muted">Aktif iş</span><b>1</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün teslim</span><b>6</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün kazanç</span><b>1.480 TL</b></div>
+          <div class="row" style="margin-top:14px"><a class="btn btn--ghost btn--sm" href="#">Profil</a><a class="btn btn--soft btn--sm" href="#">Mesaj</a></div>
+        </div>
+
+        <div class="card">
+          <div class="spread"><div class="media"><span class="avatar" style="background:linear-gradient(140deg,#3aa7c9,#5c7a5f)">DY</span>
+            <div><b>Deniz Y.</b><small class="muted">Gökova · 4.8 ★</small></div></div>
+            <span class="badge badge--amber">Meşgul</span></div>
+          <hr class="ticket__perf" />
+          <div class="spread" style="font-size:14px"><span class="muted">Aktif iş</span><b>1</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün teslim</span><b>4</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün kazanç</span><b>980 TL</b></div>
+          <div class="row" style="margin-top:14px"><a class="btn btn--ghost btn--sm" href="#">Profil</a><a class="btn btn--soft btn--sm" href="#">Mesaj</a></div>
+        </div>
+
+        <div class="card">
+          <div class="spread"><div class="media"><span class="avatar" style="background:linear-gradient(140deg,#d85f3c,#e19a2b)">SB</span>
+            <div><b>Selim B.</b><small class="muted">Akyaka · 4.7 ★</small></div></div>
+            <span class="badge badge--sage">Müsait</span></div>
+          <hr class="ticket__perf" />
+          <div class="spread" style="font-size:14px"><span class="muted">Aktif iş</span><b>0</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün teslim</span><b>3</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün kazanç</span><b>720 TL</b></div>
+          <div class="row" style="margin-top:14px"><a class="btn btn--ghost btn--sm" href="#">Profil</a><a class="btn btn--soft btn--sm" href="#">Mesaj</a></div>
+        </div>
+
+        <div class="card">
+          <div class="spread"><div class="media"><span class="avatar" style="background:linear-gradient(140deg,#7c4a63,#d85f3c)">EK</span>
+            <div><b>Ece K.</b><small class="muted">Akçapınar · 5.0 ★</small></div></div>
+            <span class="badge badge--sage">Müsait</span></div>
+          <hr class="ticket__perf" />
+          <div class="spread" style="font-size:14px"><span class="muted">Aktif iş</span><b>0</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün teslim</span><b>5</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün kazanç</span><b>1.150 TL</b></div>
+          <div class="row" style="margin-top:14px"><a class="btn btn--ghost btn--sm" href="#">Profil</a><a class="btn btn--soft btn--sm" href="#">Mesaj</a></div>
+        </div>
+
+        <div class="card">
+          <div class="spread"><div class="media"><span class="avatar" style="background:linear-gradient(140deg,#8f7f70,#5c7a5f)">TG</span>
+            <div><b>Tuna G.</b><small class="muted">Gökova · 4.6 ★</small></div></div>
+            <span class="badge badge--muted">Çevrimdışı</span></div>
+          <hr class="ticket__perf" />
+          <div class="spread" style="font-size:14px"><span class="muted">Aktif iş</span><b>0</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Bugün teslim</span><b>0</b></div>
+          <div class="spread" style="font-size:14px"><span class="muted">Son görülme</span><b>2 sa önce</b></div>
+          <div class="row" style="margin-top:14px"><a class="btn btn--ghost btn--sm" href="#">Profil</a><a class="btn btn--ghost btn--sm" href="#">Mesaj</a></div>
+        </div>
+
+        <!-- add courier -->
+        <a href="#" class="empty" style="display:grid; place-content:center; text-decoration:none; color:var(--muted)">
+          <div class="em">＋</div><b style="color:var(--ink)">Yeni kurye ekle</b>
+          <span class="hint">Davet gönder</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

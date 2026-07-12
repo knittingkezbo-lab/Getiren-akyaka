@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ayarlar · Yönetici · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">📊</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişler</span></a>
+      <a class="nav__item" href="couriers.html"><span class="nav__ic">🛵</span> <span class="nav__label">Kuryeler</span></a>
+      <a class="nav__item is-active" href="settings.html"><span class="nav__ic">⚙️</span> <span class="nav__label">Ayarlar</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="../customer/dashboard.html">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="dashboard.html" class="is-active">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm" style="background:linear-gradient(140deg,#7c4a63,#2b2320)">AY</span>
+        <div><b style="font-size:14px">Ayşe Y.</b><small>Yönetici</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Ayarlar</h1><p class="crumb">Bölgeler · fiyatlandırma · genel</p></div>
+      <div class="topbar__spacer"></div>
+      <button class="btn btn--primary btn--sm">Tümünü kaydet</button>
+    </header>
+
+    <div class="content stack">
+      <!-- zones -->
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Bölgeler</p><h2>Teslimat bölgeleri &amp; hizmet bedeli</h2></div>
+          <button class="btn btn--soft btn--sm">+ Bölge ekle</button></div>
+        <div class="stack-sm">
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--primary-soft);color:var(--primary-2)">📍</span><div><b>Akyaka Merkez</b><small class="muted">Aktif</small></div></div>
+            <div class="row"><div class="input-group" style="width:150px"><input class="input" value="250" /><span class="addon">TL</span></div>
+              <label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+          </div>
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--primary-soft);color:var(--primary-2)">📍</span><div><b>Gökova</b><small class="muted">Aktif</small></div></div>
+            <div class="row"><div class="input-group" style="width:150px"><input class="input" value="350" /><span class="addon">TL</span></div>
+              <label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+          </div>
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--primary-soft);color:var(--primary-2)">📍</span><div><b>Akçapınar</b><small class="muted">Aktif</small></div></div>
+            <div class="row"><div class="input-group" style="width:150px"><input class="input" value="350" /><span class="addon">TL</span></div>
+              <label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+          </div>
+          <div class="list__row" style="opacity:.6">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--muted)">📍</span><div><b>Ataköy</b><small class="muted">Pasif · yakında</small></div></div>
+            <div class="row"><div class="input-group" style="width:150px"><input class="input" value="400" /><span class="addon">TL</span></div>
+              <label class="switch"><input type="checkbox" /><span class="track"></span></label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid cols-2" style="align-items:start">
+        <!-- safety buffer -->
+        <div class="card">
+          <div class="card__head"><div><p class="eyebrow">Güvenlik payı</p><h2>Bloke tamponu</h2></div></div>
+          <p class="muted" style="margin-bottom:14px">Tahmini ürün tutarının üstüne eklenen pay. Fiş beklenenden yüksek çıkarsa tamponu korur.</p>
+          <div class="input-group" style="max-width:200px"><input class="input" value="15" /><span class="addon">%</span></div>
+          <div class="alert alert--info" style="margin-top:14px"><span class="alert__ic">ℹ</span>
+            <div>Örn. 400 TL ürün → <b>60 TL</b> güvenlik payı bloke edilir.</div></div>
+        </div>
+
+        <!-- general -->
+        <div class="card">
+          <div class="card__head"><div><p class="eyebrow">Genel</p><h2>Operasyon</h2></div></div>
+          <div class="stack-sm">
+            <div class="list__row"><div><b>Siparişleri kabul et</b><p class="hint" style="margin-top:2px">Kapatınca yeni sipariş alınmaz.</p></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+            <div class="list__row"><div><b>Otomatik kurye ataması</b><p class="hint" style="margin-top:2px">En yakın müsait kuryeye ata.</p></div><label class="switch"><input type="checkbox" /><span class="track"></span></label></div>
+            <div class="list__row"><div><b>Min. sipariş tutarı</b><p class="hint" style="margin-top:2px">Ürün tahmini alt sınırı.</p></div><div class="input-group" style="width:130px"><input class="input" value="100" /><span class="addon">TL</span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- default prices -->
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Varsayılan fiyatlar</p><h2>Tahmin sözlüğü</h2></div>
+          <button class="btn btn--soft btn--sm">+ Ürün ekle</button></div>
+        <p class="muted" style="margin-bottom:14px">Serbest metindeki kelimeler bu tabloyla eşleşerek ön tahmini oluşturur.</p>
+        <div class="tablewrap">
+          <table class="tbl">
+            <thead><tr><th>Anahtar kelime</th><th>Kategori</th><th class="num">Birim fiyat</th><th></th></tr></thead>
+            <tbody>
+              <tr><td><b>süt</b></td><td>Market</td><td class="num">50 TL</td><td><a class="btn btn--ghost btn--sm" href="#">Düzenle</a></td></tr>
+              <tr><td><b>ekmek</b></td><td>Fırın</td><td class="num">15 TL</td><td><a class="btn btn--ghost btn--sm" href="#">Düzenle</a></td></tr>
+              <tr><td><b>su</b></td><td>Market</td><td class="num">35 TL</td><td><a class="btn btn--ghost btn--sm" href="#">Düzenle</a></td></tr>
+              <tr><td><b>kahve</b></td><td>Market</td><td class="num">120 TL</td><td><a class="btn btn--ghost btn--sm" href="#">Düzenle</a></td></tr>
+              <tr><td><b>ağrı kesici</b></td><td>Eczane</td><td class="num">150 TL</td><td><a class="btn btn--ghost btn--sm" href="#">Düzenle</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Yönetici Paneli · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item is-active" href="dashboard.html"><span class="nav__ic">📊</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişler</span></a>
+      <a class="nav__item" href="couriers.html"><span class="nav__ic">🛵</span> <span class="nav__label">Kuryeler</span></a>
+      <a class="nav__item" href="settings.html"><span class="nav__ic">⚙️</span> <span class="nav__label">Ayarlar</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="../customer/dashboard.html">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="dashboard.html" class="is-active">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm" style="background:linear-gradient(140deg,#7c4a63,#2b2320)">AY</span>
+        <div><b style="font-size:14px">Ayşe Y.</b><small>Yönetici</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Yönetici paneli</h1><p class="crumb">Bugün · 12 Temmuz Cumartesi</p></div>
+      <div class="topbar__spacer"></div>
+      <button class="btn btn--icon" title="Bildirimler">🔔</button>
+    </header>
+
+    <div class="content stack" style="gap:20px">
+      <!-- KPIs -->
+      <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat kpi stat--primary"><div class="k">Bugünkü sipariş</div><div class="v">18 <span class="trend" style="color:#ffe1cf">▲ %12</span></div></div>
+        <div class="stat kpi"><div class="k">Ciro (tahsil)</div><div class="v">6.180 <small>TL</small> <span class="trend trend-up">▲ %8</span></div></div>
+        <div class="stat kpi"><div class="k">Bloke tutar</div><div class="v">9.240 <small>TL</small></div></div>
+        <div class="stat kpi"><div class="k">Aktif kurye</div><div class="v">4 <span class="trend trend-down">▼ 1</span></div></div>
+      </div>
+
+      <div class="grid col-wide" style="align-items:start">
+        <!-- chart -->
+        <div class="card">
+          <div class="card__head"><div><p class="eyebrow">Son 7 gün</p><h2>Günlük sipariş</h2></div><span class="badge badge--sage">Σ 96</span></div>
+          <div class="bars">
+            <div class="bar"><i style="height:42%"></i><small>Pzt</small></div>
+            <div class="bar"><i style="height:55%"></i><small>Sal</small></div>
+            <div class="bar"><i style="height:48%"></i><small>Çar</small></div>
+            <div class="bar"><i style="height:70%"></i><small>Per</small></div>
+            <div class="bar"><i style="height:82%"></i><small>Cum</small></div>
+            <div class="bar is-peak"><i style="height:100%"></i><small>Cmt</small></div>
+            <div class="bar"><i style="height:64%"></i><small>Paz</small></div>
+          </div>
+        </div>
+
+        <!-- zone breakdown -->
+        <div class="card">
+          <div class="card__head"><div><p class="eyebrow">Bölge dağılımı</p><h2>Bugün</h2></div></div>
+          <div class="stack" style="gap:14px">
+            <div><div class="spread" style="margin-bottom:6px"><b>Akyaka</b><span class="muted">10 · %56</span></div><div class="progress"><i style="width:56%"></i></div></div>
+            <div><div class="spread" style="margin-bottom:6px"><b>Gökova</b><span class="muted">5 · %28</span></div><div class="progress"><i style="width:28%"></i></div></div>
+            <div><div class="spread" style="margin-bottom:6px"><b>Akçapınar</b><span class="muted">3 · %16</span></div><div class="progress"><i style="width:16%"></i></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- pending assignments -->
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Bekleyen atamalar</p><h2>Kurye atanmayı bekleyen 3 sipariş</h2></div>
+          <a href="orders.html" class="hint" style="font-weight:800;color:var(--primary-2)">Tümü →</a></div>
+        <div class="stack-sm">
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🧾</span>
+              <div><b>#A24-114 · Gazete · sigara · çakmak</b><small class="muted">Akçapınar · Can P. · 4 dk önce</small></div></div>
+            <div class="row"><span class="badge badge--muted">330 TL</span>
+              <select class="select" style="width:150px; padding:9px 34px 9px 12px"><option>Kurye ata…</option><option>Mert K.</option><option>Deniz Y.</option></select></div>
+          </div>
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🧾</span>
+              <div><b>#A24-113 · Zeytinyağı · yumurta</b><small class="muted">Gökova · Selin A. · 9 dk önce</small></div></div>
+            <div class="row"><span class="badge badge--muted">480 TL</span>
+              <select class="select" style="width:150px; padding:9px 34px 9px 12px"><option>Kurye ata…</option><option>Mert K.</option><option>Deniz Y.</option></select></div>
+          </div>
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🧾</span>
+              <div><b>#A24-111 · Su (6’lı) · meyve</b><small class="muted">Akyaka · Barış T. · 14 dk önce</small></div></div>
+            <div class="row"><span class="badge badge--muted">265 TL</span>
+              <select class="select" style="width:150px; padding:9px 34px 9px 12px"><option>Kurye ata…</option><option>Mert K.</option><option>Deniz Y.</option></select></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

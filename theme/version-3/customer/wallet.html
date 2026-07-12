@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cüzdan · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">🏠</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="order-new.html"><span class="nav__ic">➕</span> <span class="nav__label">Yeni sipariş</span></a>
+      <a class="nav__item" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişlerim</span></a>
+      <a class="nav__item is-active" href="wallet.html"><span class="nav__ic">💳</span> <span class="nav__label">Cüzdan</span></a>
+      <a class="nav__item" href="profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="dashboard.html" class="is-active">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm">GG</span>
+        <div><b style="font-size:14px">Gencer Ger</b><small>Müşteri · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Cüzdan</h1><p class="crumb">Bakiye, bloke ve hareketler</p></div>
+    </header>
+
+    <div class="content grid col-wide" style="align-items:start">
+      <!-- sol: bakiye + yükleme -->
+      <div class="stack">
+        <div class="card" style="background:linear-gradient(150deg,#2b2320,#4a3a34); color:#fff; border:0">
+          <p class="eyebrow" style="color:#ffcf9e">Kullanılabilir bakiye</p>
+          <div class="balance" style="color:#fff; margin:8px 0 4px">1.000 <small style="color:#e7d5c6">TL</small></div>
+          <div class="row" style="gap:18px; margin-top:10px">
+            <span style="color:#e7d5c6">🔒 Bloke: <b style="color:#fff">753 TL</b></span>
+            <span style="color:#e7d5c6">Σ Toplam: <b style="color:#fff">1.753 TL</b></span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__head"><div><p class="eyebrow">Bakiye yükle</p><h2>Ne kadar yükleyelim?</h2></div></div>
+          <div class="pick" style="grid-template-columns:1fr 1fr 1fr 1fr">
+            <input type="radio" name="amt" id="a1" /><label for="a1"><b>250 TL</b></label>
+            <input type="radio" name="amt" id="a2" checked /><label for="a2"><b>500 TL</b></label>
+            <input type="radio" name="amt" id="a3" /><label for="a3"><b>1.000 TL</b></label>
+            <input type="radio" name="amt" id="a4" /><label for="a4"><b>Diğer</b></label>
+          </div>
+          <div class="field" style="margin-top:16px"><label class="label">Tutar</label>
+            <div class="input-group"><input class="input" value="500" /><span class="addon">TL</span></div></div>
+          <div class="alert alert--info"><span class="alert__ic">🔒</span><div>Ödeme sağlayıcısına yönlendirilirsin; kart bilgin bizde tutulmaz.</div></div>
+          <button class="btn btn--primary btn--block btn--lg" style="margin-top:14px">500 TL yükle</button>
+        </div>
+      </div>
+
+      <!-- sağ: hareketler (ledger) -->
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Hesap hareketleri</p><h2>Son işlemler</h2></div>
+          <a href="#" class="hint" style="font-weight:800;color:var(--primary-2)">Dışa aktar</a></div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm badge--sage" style="background:var(--sage-soft);color:#3f5c42">↩</span><div><b>İade · #A24-116</b><small class="muted">10 Tem · fiş blokeden düşük</small></div></div>
+          <b class="num" style="color:#3f7a4a">+163 TL</b>
+        </div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm" style="background:var(--danger-soft);color:var(--danger)">🔒</span><div><b>Bloke · #A24-118</b><small class="muted">12 Tem · sipariş onayı</small></div></div>
+          <b class="num">−753 TL</b>
+        </div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm" style="background:var(--danger-soft);color:var(--danger)">🧾</span><div><b>Tahsil · #A24-116</b><small class="muted">10 Tem · teslim edildi</small></div></div>
+          <b class="num">−742 TL</b>
+        </div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm" style="background:var(--sage-soft);color:#3f5c42">＋</span><div><b>Bakiye yükleme</b><small class="muted">9 Tem · kart</small></div></div>
+          <b class="num" style="color:#3f7a4a">+1.000 TL</b>
+        </div>
+        <div class="list__row">
+          <div class="media"><span class="avatar avatar--sm" style="background:var(--danger-soft);color:var(--danger)">＋</span><div><b>Ek ödeme · #A24-115</b><small class="muted">8 Tem · fiş blokeyi aştı</small></div></div>
+          <b class="num">−80 TL</b>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

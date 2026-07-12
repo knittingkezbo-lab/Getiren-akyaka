@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kurye Paneli · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item is-active" href="dashboard.html"><span class="nav__ic">🛵</span> <span class="nav__label">İşler</span></a>
+      <a class="nav__item" href="order.html"><span class="nav__ic">📦</span> <span class="nav__label">Aktif iş</span></a>
+      <a class="nav__item" href="../customer/profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="../customer/dashboard.html">Müşteri</a>
+        <a href="dashboard.html" class="is-active">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm" style="background:linear-gradient(140deg,#5c7a5f,#e19a2b)">MK</span>
+        <div><b style="font-size:14px">Mert K.</b><small>Kurye · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Merhaba Mert 👋</h1><p class="crumb">Bugün 6 iş tamamladın</p></div>
+      <div class="topbar__spacer"></div>
+      <span class="row" style="gap:8px"><small class="muted">Müsait</small><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></span>
+    </header>
+
+    <div class="content stack" style="gap:20px">
+      <!-- today's summary -->
+      <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat stat--primary"><div class="k">Bugünkü kazanç</div><div class="v">1.480 <small>TL</small></div></div>
+        <div class="stat"><div class="k">Teslim</div><div class="v">6</div></div>
+        <div class="stat"><div class="k">Aktif iş</div><div class="v">1</div></div>
+        <div class="stat"><div class="k">Puan</div><div class="v">4.9 <small>★</small></div></div>
+      </div>
+
+      <!-- active job -->
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Aktif işin</p><h2>#A24-118 · 1 kutu süt · 2 ağrı kesici · ekmek</h2></div>
+          <span class="badge badge--primary"><span class="dot"></span> Alışverişte</span></div>
+        <div class="order__meta" style="display:flex; flex-wrap:wrap; gap:8px 18px; color:var(--muted); font-size:14px; margin-bottom:14px">
+          <span>📍 <b style="color:var(--ink)">Akyaka Merkez</b> · Şirinyer Mah.</span>
+          <span>🔒 Bloke <b style="color:var(--ink)">753 TL</b></span>
+          <span>👤 Gencer G.</span>
+        </div>
+        <a class="btn btn--primary" href="order.html">İşe devam et →</a>
+      </div>
+
+      <!-- available jobs -->
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Müsait işler</p><h2>Yakınındaki 3 sipariş</h2></div></div>
+        <div class="stack-sm">
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🧺</span>
+              <div><b>Kahve · su (6’lı) · 1 ekmek</b><small class="muted">Gökova · ~2.4 km · Selin A.</small></div></div>
+            <div class="row"><span class="badge badge--muted">Bloke 612 TL</span><a class="btn btn--primary btn--sm" href="order.html">Üstlen</a></div>
+          </div>
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🧺</span>
+              <div><b>Zeytinyağı · 2 ekmek · yumurta</b><small class="muted">Akçapınar · ~3.1 km · Barış T.</small></div></div>
+            <div class="row"><span class="badge badge--muted">Bloke 480 TL</span><a class="btn btn--primary btn--sm" href="order.html">Üstlen</a></div>
+          </div>
+          <div class="list__row">
+            <div class="media"><span class="avatar avatar--sm" style="background:var(--surface-3);color:var(--ink-soft)">🧺</span>
+              <div><b>Gazete · sigara · çakmak</b><small class="muted">Akyaka · ~0.8 km · Can P.</small></div></div>
+            <div class="row"><span class="badge badge--muted">Bloke 330 TL</span><a class="btn btn--primary btn--sm" href="order.html">Üstlen</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

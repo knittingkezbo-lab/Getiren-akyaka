@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Giriş · Getiren Akyaka</title>
+<link rel="stylesheet" href="assets/theme.css" />
+</head>
+<body>
+<div class="authpage">
+  <div class="authcard">
+    <!-- sol: marka -->
+    <div class="authside">
+      <a class="brand" href="customer/dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+      <h2>Gökova’nın<br/>getir-götür ustası.</h2>
+      <p>Ne lazımsa yaz; tutarı bloke edelim, gerçek fişe göre keselim, fazlasını iade edelim.</p>
+      <ul class="authpoints">
+        <li><span class="tick">✓</span> Şeffaf bloke &amp; iade</li>
+        <li><span class="tick">✓</span> Akyaka · Gökova · Akçapınar</li>
+        <li><span class="tick">✓</span> Kuryeni adım adım izle</li>
+      </ul>
+    </div>
+    <!-- sağ: form -->
+    <div class="authbody">
+      <p class="eyebrow">Tekrar hoş geldin</p>
+      <h2 style="font-size:26px; margin:6px 0 4px">Giriş yap</h2>
+      <p class="muted" style="margin-bottom:20px">Hesabınla devam et.</p>
+
+      <form>
+        <div class="field">
+          <label class="label" for="email">E-posta</label>
+          <div class="input-icon">
+            <span class="ic">✉</span>
+            <input class="input" id="email" type="email" placeholder="ornek@eposta.com" value="gencer@bizsim.com" />
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="spread" style="margin-bottom:0">
+            <label class="label" for="pass" style="margin-bottom:0">Şifre</label>
+            <a href="#" class="hint" style="font-weight:700; color:var(--primary-2)">Şifremi unuttum</a>
+          </div>
+          <div class="input-icon" style="margin-top:7px">
+            <span class="ic">🔒</span>
+            <input class="input" id="pass" type="password" placeholder="••••••••" value="password" />
+          </div>
+        </div>
+
+        <label class="check" style="margin:4px 0 20px">
+          <input type="checkbox" checked /> Beni hatırla
+        </label>
+
+        <a class="btn btn--primary btn--block btn--lg" href="customer/dashboard.html">Giriş yap</a>
+
+        <p class="hint center" style="margin-top:14px">Demo olarak gir:
+          <a href="customer/dashboard.html" style="color:var(--primary-2);font-weight:800">Müşteri</a> ·
+          <a href="courier/dashboard.html" style="color:var(--primary-2);font-weight:800">Kurye</a> ·
+          <a href="admin/dashboard.html" style="color:var(--primary-2);font-weight:800">Yönetici</a>
+        </p>
+
+        <div class="divider">veya</div>
+        <a class="btn btn--ghost btn--block" href="customer/dashboard.html"><span>◎</span> Google ile devam et</a>
+
+        <p class="center muted" style="margin-top:22px">
+          Hesabın yok mu? <a href="register.html" style="font-weight:800; color:var(--primary-2)">Kayıt ol</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

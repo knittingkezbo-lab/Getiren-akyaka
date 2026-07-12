@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Siparişler · Yönetici · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">📊</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item is-active" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişler</span></a>
+      <a class="nav__item" href="couriers.html"><span class="nav__ic">🛵</span> <span class="nav__label">Kuryeler</span></a>
+      <a class="nav__item" href="settings.html"><span class="nav__ic">⚙️</span> <span class="nav__label">Ayarlar</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="../customer/dashboard.html">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="dashboard.html" class="is-active">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm" style="background:linear-gradient(140deg,#7c4a63,#2b2320)">AY</span>
+        <div><b style="font-size:14px">Ayşe Y.</b><small>Yönetici</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Siparişler</h1><p class="crumb">Tüm siparişler · atama ve durum yönetimi</p></div>
+      <div class="topbar__spacer"></div>
+      <button class="btn btn--ghost btn--sm">Dışa aktar</button>
+    </header>
+
+    <div class="content stack">
+      <div class="card card--pad-sm">
+        <div class="toolbar">
+          <div class="field" style="margin:0; flex:1; min-width:220px"><label class="label">Ara</label>
+            <div class="input-icon"><span class="ic">🔍</span><input class="input" placeholder="Sipariş no, müşteri, içerik" /></div></div>
+          <div class="field" style="margin:0; min-width:150px"><label class="label">Durum</label>
+            <select class="select"><option>Tüm durumlar</option><option>Bloke</option><option>Alışverişte</option><option>Yolda</option><option>Teslim</option><option>Ek ödeme</option></select></div>
+          <div class="field" style="margin:0; min-width:140px"><label class="label">Bölge</label>
+            <select class="select"><option>Tüm bölgeler</option><option>Akyaka</option><option>Gökova</option><option>Akçapınar</option></select></div>
+          <div class="field" style="margin:0; min-width:140px"><label class="label">Kurye</label>
+            <select class="select"><option>Tüm kuryeler</option><option>Mert K.</option><option>Deniz Y.</option></select></div>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <table class="tbl">
+          <thead><tr><th>#</th><th>Müşteri</th><th>Bölge</th><th>Durum</th><th class="num">Bloke</th><th class="num">Fiş</th><th>Kurye</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>A24-118</b></td><td>Gencer G.</td><td>Akyaka</td><td><span class="badge badge--primary"><span class="dot"></span> Alışverişte</span></td><td class="num">753</td><td class="num muted">—</td><td>Mert K.</td><td><a class="btn btn--ghost btn--sm" href="#">Detay</a></td></tr>
+            <tr><td><b>A24-117</b></td><td>Selin A.</td><td>Gökova</td><td><span class="badge badge--amber"><span class="dot"></span> Yolda</span></td><td class="num">612</td><td class="num muted">—</td><td>Deniz Y.</td><td><a class="btn btn--ghost btn--sm" href="#">Detay</a></td></tr>
+            <tr><td><b>A24-116</b></td><td>Barış T.</td><td>Akçapınar</td><td><span class="badge badge--sage"><span class="dot"></span> Teslim</span></td><td class="num">905</td><td class="num">742</td><td>Mert K.</td><td><a class="btn btn--ghost btn--sm" href="#">Detay</a></td></tr>
+            <tr><td><b>A24-115</b></td><td>Elif D.</td><td>Akyaka</td><td><span class="badge badge--danger"><span class="dot"></span> Ek ödeme</span></td><td class="num">480</td><td class="num">560</td><td>Deniz Y.</td><td><a class="btn btn--soft btn--sm" href="#">Bildir</a></td></tr>
+            <tr><td><b>A24-114</b></td><td>Can P.</td><td>Akçapınar</td><td><span class="badge badge--muted"><span class="dot"></span> Bloke</span></td><td class="num">330</td><td class="num muted">—</td><td><span class="muted">—</span></td><td><select class="select" style="width:140px; padding:8px 30px 8px 12px"><option>Kurye ata…</option><option>Mert K.</option><option>Deniz Y.</option></select></td></tr>
+            <tr><td><b>A24-113</b></td><td>Selin A.</td><td>Gökova</td><td><span class="badge badge--muted"><span class="dot"></span> Bloke</span></td><td class="num">480</td><td class="num muted">—</td><td><span class="muted">—</span></td><td><select class="select" style="width:140px; padding:8px 30px 8px 12px"><option>Kurye ata…</option><option>Mert K.</option><option>Deniz Y.</option></select></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="pager"><a href="#">‹</a><a href="#" class="is-active">1</a><a href="#">2</a><a href="#">3</a><a href="#">4</a><a href="#">›</a></nav>
+    </div>
+  </div>
+</div>
+</body>
+</html>

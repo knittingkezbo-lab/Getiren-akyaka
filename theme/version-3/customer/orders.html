@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Siparişlerim · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">🏠</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="order-new.html"><span class="nav__ic">➕</span> <span class="nav__label">Yeni sipariş</span></a>
+      <a class="nav__item is-active" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişlerim</span></a>
+      <a class="nav__item" href="wallet.html"><span class="nav__ic">💳</span> <span class="nav__label">Cüzdan</span></a>
+      <a class="nav__item" href="profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="dashboard.html" class="is-active">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm">GG</span>
+        <div><b style="font-size:14px">Gencer Ger</b><small>Müşteri · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Siparişlerim</h1><p class="crumb">Tüm siparişlerin ve durumları</p></div>
+      <div class="topbar__spacer"></div>
+      <a class="btn btn--primary btn--sm" href="order-new.html">+ Yeni sipariş</a>
+    </header>
+
+    <div class="content stack">
+      <div class="card card--pad-sm">
+        <div class="toolbar">
+          <div class="field" style="margin:0; flex:1; min-width:220px">
+            <label class="label">Ara</label>
+            <div class="input-icon"><span class="ic">🔍</span><input class="input" placeholder="Sipariş no veya içerik" /></div>
+          </div>
+          <div>
+            <label class="label">Durum</label>
+            <div class="row" style="gap:6px">
+              <span class="chip chip--active">Tümü</span><span class="chip">Aktif</span><span class="chip">Teslim</span><span class="chip">Ek ödeme</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tablewrap">
+        <table class="tbl">
+          <thead><tr><th>Sipariş</th><th>İçerik</th><th>Bölge</th><th>Durum</th><th class="num">Bloke</th><th class="num">Fiş</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>#A24-118</b></td><td>1 kutu süt · 2 ağrı kesici · ekmek</td><td>Akyaka</td><td><span class="badge badge--primary"><span class="dot"></span> Alışverişte</span></td><td class="num">753</td><td class="num muted">—</td><td><a class="btn btn--soft btn--sm" href="order-track.html">Takip</a></td></tr>
+            <tr><td><b>#A24-116</b></td><td>Zeytinyağı · 2 ekmek</td><td>Akçapınar</td><td><span class="badge badge--sage"><span class="dot"></span> Teslim</span></td><td class="num">905</td><td class="num">742</td><td><a class="btn btn--ghost btn--sm" href="#">Fiş</a></td></tr>
+            <tr><td><b>#A24-115</b></td><td>Zeytinyağı · 2 ekmek</td><td>Akyaka</td><td><span class="badge badge--danger"><span class="dot"></span> Ek ödeme</span></td><td class="num">480</td><td class="num">560</td><td><a class="btn btn--soft btn--sm" href="#">Öde</a></td></tr>
+            <tr><td><b>#A24-114</b></td><td>Gazete · sigara · çakmak</td><td>Akçapınar</td><td><span class="badge badge--sage"><span class="dot"></span> Teslim</span></td><td class="num">330</td><td class="num">312</td><td><a class="btn btn--ghost btn--sm" href="#">Fiş</a></td></tr>
+            <tr><td><b>#A24-112</b></td><td>Kahve · su (6’lı)</td><td>Gökova</td><td><span class="badge badge--sage"><span class="dot"></span> Teslim</span></td><td class="num">612</td><td class="num">548</td><td><a class="btn btn--ghost btn--sm" href="#">Fiş</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <nav class="pager"><a href="#">‹</a><a href="#" class="is-active">1</a><a href="#">2</a><a href="#">3</a><a href="#">›</a></nav>
+    </div>
+  </div>
+</div>
+</body>
+</html>

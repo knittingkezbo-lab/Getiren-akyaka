@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Yeni sipariş · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">🏠</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item is-active" href="order-new.html"><span class="nav__ic">➕</span> <span class="nav__label">Yeni sipariş</span></a>
+      <a class="nav__item" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişlerim</span></a>
+      <a class="nav__item" href="wallet.html"><span class="nav__ic">💳</span> <span class="nav__label">Cüzdan</span></a>
+      <a class="nav__item" href="profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="dashboard.html" class="is-active">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm">GG</span>
+        <div><b style="font-size:14px">Gencer Ger</b><small>Müşteri · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Yeni sipariş</h1><p class="crumb">Üç adımda hazır — acele etme, biz buradayız.</p></div>
+      <div class="topbar__spacer"></div>
+      <div class="walletchip"><span class="muted">Cüzdan</span> <b>1.000 TL</b></div>
+    </header>
+
+    <div class="content">
+      <div class="grid col-wide" style="align-items:start">
+        <!-- FORM -->
+        <div class="card">
+          <!-- 1 -->
+          <div class="formsection">
+            <div class="formsection__head">
+              <span class="formsection__num">1</span>
+              <div><h3>Ne lazım?</h3><p>Aklından ne geçiyorsa yaz — market, eczane, fırın fark etmez.</p></div>
+            </div>
+            <textarea class="textarea" placeholder="Örn: 1 kutu süt, 2 ağrı kesici, ekmek">1 kutu süt, 2 ağrı kesici, ekmek</textarea>
+            <div class="quick">
+              <span class="q">＋ Süt</span><span class="q">＋ Ekmek</span><span class="q">＋ Su</span>
+              <span class="q">＋ Kahve</span><span class="q">＋ Ağrı kesici</span><span class="q">＋ Gazete</span>
+            </div>
+          </div>
+
+          <!-- 2 -->
+          <div class="formsection">
+            <div class="formsection__head">
+              <span class="formsection__num">2</span>
+              <div><h3>Nereye getirelim?</h3><p>Teslimat bölgesi ve adresini seç.</p></div>
+            </div>
+            <label class="label">Bölge</label>
+            <div class="pick" style="margin-bottom:16px">
+              <input type="radio" name="zone" id="z1" checked /><label for="z1"><b>Akyaka</b><span>Merkez · 250 TL</span></label>
+              <input type="radio" name="zone" id="z2" /><label for="z2"><b>Gökova</b><span>350 TL</span></label>
+              <input type="radio" name="zone" id="z3" /><label for="z3"><b>Akçapınar</b><span>350 TL</span></label>
+            </div>
+            <div class="form-grid">
+              <div class="field"><label class="label">Adres</label>
+                <select class="select"><option>Ev · Şirinyer Mah. Deniz Sk.</option><option>İş · Marina</option><option>+ Yeni adres</option></select></div>
+              <div class="field"><label class="label">Teslimat zamanı</label>
+                <div class="segmented">
+                  <input type="radio" name="when" id="w1" checked /><label for="w1">Şimdi</label>
+                  <input type="radio" name="when" id="w2" /><label for="w2">Zaman seç</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3 -->
+          <div class="formsection">
+            <div class="formsection__head">
+              <span class="formsection__num">3</span>
+              <div><h3>İletişim &amp; not</h3><p>Kurye gerekirse sana ulaşsın.</p></div>
+            </div>
+            <div class="form-grid">
+              <div class="field"><label class="label">Telefon</label>
+                <div class="input-group"><span class="addon">+90</span><input class="input" value="5xx xxx xx xx" /></div></div>
+              <div class="field"><label class="label">Kapı / kat</label><input class="input" placeholder="2. kat, mavi kapı" /></div>
+            </div>
+            <div class="field" style="margin-bottom:0"><label class="label">Kuryeye not (opsiyonel)</label>
+              <input class="input" placeholder="Zil çalışmıyor, arayın lütfen" /></div>
+          </div>
+        </div>
+
+        <!-- SUMMARY (sticky) -->
+        <div class="order-summary">
+          <div class="ticket">
+            <div class="spread">
+              <div><p class="eyebrow">Tahmini fiş</p><h3 style="margin-top:2px">Ön hesap</h3></div>
+              <span class="badge badge--amber">%15 pay dahil</span>
+            </div>
+            <hr class="ticket__perf" />
+            <div class="ticket__row"><span>Ürün tahmini</span><b>430 TL</b></div>
+            <div class="ticket__row"><span>%15 güvenlik payı</span><b>65 TL</b></div>
+            <div class="ticket__row"><span>Teslimat · Akyaka</span><b>250 TL</b></div>
+            <hr class="ticket__perf" />
+            <div class="ticket__row ticket__row--total"><span>Bloke edilecek</span><b>745 TL</b></div>
+            <div class="ticket__row"><span>Kalan bakiye</span><b class="num">255 TL</b></div>
+
+            <div class="alert alert--info" style="margin-top:14px">
+              <span class="alert__ic">ℹ</span>
+              <div>Bu bir <b>ön hesap</b>. Gerçek fiş düşük çıkarsa fark anında cüzdanına iade edilir.</div>
+            </div>
+
+            <a class="btn btn--primary btn--block btn--lg" href="order-track.html" style="margin-top:16px">Onayla ve 745 TL bloke et</a>
+            <a class="btn btn--ghost btn--block" href="dashboard.html" style="margin-top:8px">Vazgeç</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobil alt onay barı -->
+    <div class="stickybar">
+      <div><small class="muted">Bloke edilecek</small><br/><b>745 TL</b></div>
+      <a class="btn btn--primary" href="order-track.html">Onayla →</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

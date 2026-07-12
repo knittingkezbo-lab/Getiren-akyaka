@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Profil · Getiren Akyaka</title>
+<link rel="stylesheet" href="../assets/theme.css" />
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+    <nav class="nav">
+      <a class="nav__item" href="dashboard.html"><span class="nav__ic">🏠</span> <span class="nav__label">Panel</span></a>
+      <a class="nav__item" href="order-new.html"><span class="nav__ic">➕</span> <span class="nav__label">Yeni sipariş</span></a>
+      <a class="nav__item" href="orders.html"><span class="nav__ic">🧾</span> <span class="nav__label">Siparişlerim</span></a>
+      <a class="nav__item" href="wallet.html"><span class="nav__ic">💳</span> <span class="nav__label">Cüzdan</span></a>
+      <a class="nav__item is-active" href="profile.html"><span class="nav__ic">👤</span> <span class="nav__label">Profil</span></a>
+    </nav>
+    <div class="sidebar__foot">
+      <div class="rolehop">
+        <a href="dashboard.html" class="is-active">Müşteri</a>
+        <a href="../courier/dashboard.html">Kurye</a>
+        <a href="../admin/dashboard.html">Yönetici</a>
+      </div>
+      <div class="usercard">
+        <span class="avatar avatar--sm">GG</span>
+        <div><b style="font-size:14px">Gencer Ger</b><small>Müşteri · Akyaka</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Profil</h1><p class="crumb">Hesap · kişisel bilgiler ve tercihler</p></div>
+    </header>
+
+    <div class="content stack">
+      <div class="card">
+        <div class="spread" style="align-items:center">
+          <div class="media">
+            <span class="avatar avatar--lg">GG</span>
+            <div>
+              <h2 style="font-size:23px">Gencer Ger</h2>
+              <p class="muted">gencer@bizsim.com · +90 5xx xxx xx xx</p>
+              <div class="row" style="margin-top:8px"><span class="badge badge--primary">Müşteri</span><span class="badge badge--sage">Doğrulanmış</span></div>
+            </div>
+          </div>
+          <button class="btn btn--ghost btn--sm">Fotoğrafı değiştir</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <a href="#" class="is-active">Kişisel bilgiler</a>
+        <a href="#">Adres</a>
+        <a href="#">Güvenlik</a>
+        <a href="#">Bildirimler</a>
+      </div>
+
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Kişisel bilgiler</p><h2>Hesap bilgilerin</h2></div></div>
+        <form>
+          <div class="form-grid">
+            <div class="field"><label class="label">Ad</label><input class="input" value="Gencer" /></div>
+            <div class="field"><label class="label">Soyad</label><input class="input" value="Ger" /></div>
+            <div class="field"><label class="label">E-posta</label><div class="input-icon"><span class="ic">✉</span><input class="input" value="gencer@bizsim.com" /></div></div>
+            <div class="field"><label class="label">Telefon</label><div class="input-group"><span class="addon">+90</span><input class="input" value="5xx xxx xx xx" /></div></div>
+          </div>
+          <div class="row"><button class="btn btn--primary">Kaydet</button><button class="btn btn--ghost" type="reset">Vazgeç</button></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Teslimat adresi</p><h2>Varsayılan adres</h2></div><span class="badge badge--muted">Kayıtlı 2 adres</span></div>
+        <form>
+          <div class="form-grid">
+            <div class="field"><label class="label">Adres başlığı</label><input class="input" value="Ev" /></div>
+            <div class="field"><label class="label">Bölge</label><select class="select"><option>Akyaka Merkez</option><option>Gökova</option><option>Akçapınar</option></select></div>
+          </div>
+          <div class="field"><label class="label">Açık adres tarifi</label><textarea class="textarea">Şirinyer Mah. Deniz Sk. — marketin arkasındaki mavi kapılı apartman, 2. kat.</textarea></div>
+          <div class="row"><button class="btn btn--primary">Adresi güncelle</button><button class="btn btn--soft" type="button">+ Yeni adres</button></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card__head"><div><p class="eyebrow">Bildirimler</p><h2>Nasıl haber verelim?</h2></div></div>
+        <div class="stack-sm">
+          <div class="list__row"><div><b>Sipariş durumu</b><p class="hint" style="margin-top:2px">Bloke, atama, yolda, teslim.</p></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+          <div class="list__row"><div><b>Ek ödeme uyarısı</b><p class="hint" style="margin-top:2px">Fiş blokeyi aşarsa.</p></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+          <div class="list__row"><div><b>Web push bildirimi</b><p class="hint" style="margin-top:2px">Tarayıcı bildirimi.</p></div><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div>
+          <div class="list__row"><div><b>E-posta bülteni</b><p class="hint" style="margin-top:2px">Kampanya ve duyurular.</p></div><label class="switch"><input type="checkbox" /><span class="track"></span></label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kayıt ol · Getiren Akyaka</title>
+<link rel="stylesheet" href="assets/theme.css" />
+</head>
+<body>
+<div class="authpage">
+  <div class="authcard">
+    <div class="authside">
+      <a class="brand" href="customer/dashboard.html"><span class="brand__mark">◐</span> getiren<b>akyaka</b></a>
+      <h2>Dakikalar içinde<br/>ilk siparişin hazır.</h2>
+      <p>Cüzdanına yükle, ne lazımsa yaz, gerisini kuryelerimize bırak.</p>
+      <ul class="authpoints">
+        <li><span class="tick">1</span> Hesabını oluştur</li>
+        <li><span class="tick">2</span> Cüzdana bakiye yükle</li>
+        <li><span class="tick">3</span> Siparişini yaz, onayla</li>
+      </ul>
+    </div>
+    <div class="authbody">
+      <p class="eyebrow">Yeni hesap</p>
+      <h2 style="font-size:26px; margin:6px 0 4px">Kayıt ol</h2>
+      <p class="muted" style="margin-bottom:20px">Bilgilerini gir, hemen başlayalım.</p>
+
+      <form>
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Ad <span class="req">*</span></label>
+            <input class="input" type="text" placeholder="Gencer" />
+          </div>
+          <div class="field">
+            <label class="label">Soyad <span class="req">*</span></label>
+            <input class="input" type="text" placeholder="Ger" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">E-posta <span class="req">*</span></label>
+          <input class="input" type="email" placeholder="ornek@eposta.com" />
+        </div>
+
+        <div class="field">
+          <label class="label">Telefon</label>
+          <div class="input-group">
+            <span class="addon">+90</span>
+            <input class="input" type="tel" placeholder="5xx xxx xx xx" />
+          </div>
+          <p class="hint">Kurye seni buradan arayabilir.</p>
+        </div>
+
+        <div class="field">
+          <label class="label">Hesap türü</label>
+          <div class="radio-row">
+            <label class="radio-card"><input type="radio" name="role" checked /> 🛒 Müşteri</label>
+            <label class="radio-card"><input type="radio" name="role" /> 🛵 Kurye</label>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field field--ok">
+            <label class="label">Şifre <span class="req">*</span></label>
+            <input class="input" type="password" value="password" />
+            <p class="ok-text">✓ Güçlü şifre</p>
+          </div>
+          <div class="field field--error">
+            <label class="label">Şifre tekrar <span class="req">*</span></label>
+            <input class="input" type="password" value="passwor" />
+            <p class="error-text">⚠ Şifreler eşleşmiyor</p>
+          </div>
+        </div>
+
+        <label class="check" style="margin:4px 0 20px">
+          <input type="checkbox" />
+          <span><a href="#" style="color:var(--primary-2); font-weight:700">Kullanım koşulları</a> ve <a href="#" style="color:var(--primary-2); font-weight:700">KVKK aydınlatma metni</a>ni okudum, onaylıyorum.</span>
+        </label>
+
+        <a class="btn btn--primary btn--block btn--lg" href="customer/dashboard.html">Hesabı oluştur</a>
+
+        <p class="center muted" style="margin-top:20px">
+          Zaten üye misin? <a href="login.html" style="font-weight:800; color:var(--primary-2)">Giriş yap</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>
