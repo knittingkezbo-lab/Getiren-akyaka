@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Zone;
+use App\Notifications\OrderNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -64,6 +65,8 @@ class OrderController extends Controller
             'courier_id' => $courier->id,
             'status' => $order->status === OrderStatus::Reserved ? OrderStatus::Assigned : $order->status,
         ]);
+
+        $order->customer->notify(new OrderNotification($order, 'Kuryen atandı', "#{$order->code} siparişine {$courier->name} atandı."));
 
         return back()->with('success', $order->code.' → '.$courier->name.' atandı.');
     }

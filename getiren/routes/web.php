@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboard;
 use App\Http\Controllers\Customer\OrderController;
@@ -26,6 +27,7 @@ Route::middleware('guest')->group(function () {
 // Kimliği doğrulanmış rotalar
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::post('/bildirimler/oku', [NotificationController::class, 'markAllRead'])->name('notifications.read');
 
     // Kök: kullanıcıyı rolüne göre açılış sayfasına yönlendirir
     Route::get('/', fn () => redirect()->route(auth()->user()->role->homeRoute()))->name('home');
@@ -39,6 +41,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/siparisler/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('/siparisler/{order}/iptal', [OrderController::class, 'cancel'])->name('orders.cancel');
+        Route::post('/siparisler/{order}/ek-odeme', [OrderController::class, 'payExtra'])->name('orders.extra');
 
         Route::get('/siparisler', [OrderController::class, 'index'])->name('orders.index');
 

@@ -161,6 +161,7 @@ class OrderController extends Controller
                     'actual_price' => $i->actual_price !== null ? (float) $i->actual_price : null,
                 ])->all(),
             ],
+            'balance' => (float) ($request->user()->wallet?->balance ?? 0),
         ]);
     }
 
@@ -186,6 +187,52 @@ class OrderController extends Controller
         return redirect()->route('customer.dashboard')->with(
             'success',
             $order->code.' iptal edildi · '.number_format((float) $order->reserved_amount, 0, ',', '.').' TL bloke çözüldü.',
+        );
+    }
+
+    /**
+     * Ek ödeme tamamlama: fiş blokeyi aşan sipariş için müşteri farkı öder.
+     * Kalan bloke tahsil edilir + fark kullanılabilir bakiyeden düşülür (ExtraCharge).
+     */
+    public function payExtra(Request $request, Order $order): RedirectResponse
+    {
+        abort_if($order->customer_id !== $request->user()->id, 403);
+        abort_unless($order->status === OrderStatus::RequiresExtraPayment, 422);
+
+        $user = $request->user()->loadMissing('wallet');
+        $wallet = $user->wallet;
+        $extra = (float) $order->extra_required_amount;
+        $reserved = (float) $order->reserved_amount;
+        $captured = $reserved + $extra;
+
+        if (! $wallet || (float) $wallet->balance < $extra) {
+            throw ValidationException::withMessages([
+                'extra' => 'Yetersiz bakiye. Ek ödeme için '.number_format($extra, 0, ',', '.').' TL gerekiyor.',
+            ]);
+        }
+
+        DB::transaction(function () use ($wallet, $order, $extra, $reserved, $captured) {
+            // Kullanılabilirden ek tutar düşülür, bloke edilen tamamen tahsil edilir
+            $wallet->recordTransaction(
+                TransactionType::ExtraCharge,
+                -$extra,
+                -$reserved,
+                $order,
+                'Ek ödeme ve tahsil',
+                ['captured' => $captured, 'extra' => $extra],
+            );
+
+            $order->update([
+                'status' => OrderStatus::Delivered,
+                'captured_amount' => $captured,
+                'refund_amount' => 0,
+                'delivered_at' => now(),
+            ]);
+        });
+
+        return redirect()->route('customer.orders.show', $order)->with(
+            'success',
+            $order->code.' · '.number_format($extra, 0, ',', '.').' TL ek ödeme alındı, sipariş tamamlandı.',
         );
     }
 

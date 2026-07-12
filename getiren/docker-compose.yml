@@ -75,6 +75,16 @@ services:
     networks:
       - getiren
 
+  # E-posta yakalayıcı (dev) — gönderilen mailler http://localhost:8025'te görünür
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: getiren-mailpit
+    ports:
+      - "8025:8025"   # web arayüzü
+      - "1025:1025"   # SMTP
+    networks:
+      - getiren
+
 volumes:
   dbdata:
 

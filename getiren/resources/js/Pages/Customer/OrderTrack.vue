@@ -1,9 +1,12 @@
 <script setup>
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { computed, ref } from 'vue';
 
-const props = defineProps({ order: { type: Object, required: true } });
+const props = defineProps({
+    order: { type: Object, required: true },
+    balance: { type: Number, default: 0 },
+});
 
 const money = (n) => Number(n).toLocaleString('tr-TR');
 
@@ -41,6 +44,9 @@ const cancel = () => {
     }
     router.post(`/musteri/siparisler/${props.order.id}/iptal`);
 };
+
+const extraForm = useForm({});
+const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-odeme`);
 </script>
 
 <template>
@@ -91,7 +97,9 @@ const cancel = () => {
                         </div>
                         <div v-else-if="order.status === 'delivered'" class="alert alert--ok" style="margin-top:18px">
                             <span class="alert__ic">✓</span>
-                            <div>Teslim edildi. Fazla blokaj <b>{{ money(order.refund_amount || 0) }} TL</b> cüzdanına iade edildi.</div>
+                            <div v-if="order.refund_amount">Teslim edildi. Fazla blokaj <b>{{ money(order.refund_amount) }} TL</b> cüzdanına iade edildi.</div>
+                            <div v-else-if="order.extra_required_amount">Teslim edildi. Ek ödeme <b>{{ money(order.extra_required_amount) }} TL</b> alındı.</div>
+                            <div v-else>Teslim edildi.</div>
                         </div>
                         <div v-else class="alert alert--info" style="margin-top:18px">
                             <span class="alert__ic">🛒</span>
@@ -132,10 +140,34 @@ const cancel = () => {
                     <span>İade edilen</span><b class="num" style="color:#3f7a4a">+{{ money(order.refund_amount) }} TL</b>
                 </div>
 
-                <div class="ticket__stub" style="margin-top:10px">
+                <div
+                    v-if="!isCancelled && order.status !== 'delivered' && order.status !== 'requires_extra_payment'"
+                    class="ticket__stub"
+                    style="margin-top:10px"
+                >
                     <span class="badge badge--sage">Fazlası iade</span>
                     <p class="hint" style="margin:0">Fiş kesinleşince fark cüzdanına döner.</p>
                 </div>
+
+                <template v-if="order.status === 'requires_extra_payment'">
+                    <hr class="ticket__perf" />
+                    <div class="ticket__row"><span>Ek ödeme gerekiyor</span><b class="num" style="color:var(--danger)">{{ money(order.extra_required_amount) }} TL</b></div>
+                    <div class="ticket__row"><span>Kullanılabilir bakiye</span><b class="num">{{ money(balance) }} TL</b></div>
+                    <p v-if="extraForm.errors.extra" class="error-text" style="margin-top:8px">⚠ {{ extraForm.errors.extra }}</p>
+                    <button
+                        v-if="balance >= order.extra_required_amount"
+                        class="btn btn--primary btn--block btn--lg"
+                        style="margin-top:12px"
+                        :disabled="extraForm.processing"
+                        @click="payExtra"
+                    >
+                        {{ extraForm.processing ? 'İşleniyor…' : `${money(order.extra_required_amount)} TL öde ve tamamla` }}
+                    </button>
+                    <template v-else>
+                        <div class="alert alert--warn" style="margin-top:12px"><span class="alert__ic">!</span><div>Ek ödeme için bakiye yetersiz.</div></div>
+                        <Link href="/musteri/cuzdan" class="btn btn--soft btn--block" style="margin-top:8px">Cüzdana yükle</Link>
+                    </template>
+                </template>
 
                 <button
                     v-if="order.can_cancel"

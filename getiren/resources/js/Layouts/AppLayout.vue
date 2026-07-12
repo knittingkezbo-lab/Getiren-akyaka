@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 defineProps({
     title: { type: String, default: '' },
@@ -50,6 +50,11 @@ const initials = computed(() =>
 );
 
 const logout = () => router.post('/logout');
+
+// Bildirimler (paylaşılan prop'tan)
+const notifications = computed(() => page.props.notifications ?? { unread: 0, items: [] });
+const bellOpen = ref(false);
+const markAllRead = () => router.post('/bildirimler/oku', {}, { preserveScroll: true, preserveState: true });
 </script>
 
 <template>
@@ -90,6 +95,34 @@ const logout = () => router.post('/logout');
                 </div>
                 <div class="topbar__spacer"></div>
                 <slot name="actions" />
+
+                <div class="notif-wrap">
+                    <button class="btn btn--icon" title="Bildirimler" @click="bellOpen = !bellOpen">
+                        🔔
+                        <span v-if="notifications.unread" class="notif-badge">{{ notifications.unread }}</span>
+                    </button>
+                    <div v-if="bellOpen" class="notif-panel">
+                        <div class="notif-head">
+                            <b>Bildirimler</b>
+                            <a v-if="notifications.unread" href="#" style="font-size:12.5px; font-weight:700; color:var(--primary-2)" @click.prevent="markAllRead">Tümünü okundu işaretle</a>
+                        </div>
+                        <div class="notif-list">
+                            <Link
+                                v-for="n in notifications.items"
+                                :key="n.id"
+                                :href="n.url || '#'"
+                                class="notif-item"
+                                :class="{ unread: !n.read }"
+                                @click="bellOpen = false"
+                            >
+                                <b>{{ n.title }}</b>
+                                <span class="msg">{{ n.message }}</span>
+                                <small>{{ n.created_at }}</small>
+                            </Link>
+                            <p v-if="!notifications.items.length" class="muted" style="padding:20px; text-align:center">Henüz bildirim yok.</p>
+                        </div>
+                    </div>
+                </div>
             </header>
 
             <div class="content">
@@ -98,3 +131,18 @@ const logout = () => router.post('/logout');
         </div>
     </div>
 </template>
+
+<style scoped>
+.notif-wrap { position: relative; }
+.notif-badge { position: absolute; top: -4px; right: -4px; background: var(--primary); color: #fff; font-size: 10px; font-weight: 900; min-width: 17px; height: 17px; border-radius: 999px; display: grid; place-items: center; padding: 0 4px; }
+.notif-panel { position: absolute; right: 0; top: calc(100% + 8px); width: 330px; max-width: 86vw; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); z-index: 50; overflow: hidden; }
+.notif-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.notif-list { max-height: 360px; overflow: auto; }
+.notif-item { display: block; padding: 12px 14px; border-bottom: 1px solid var(--line); text-decoration: none; color: inherit; }
+.notif-item:last-child { border-bottom: 0; }
+.notif-item:hover { background: var(--surface-2); }
+.notif-item.unread { background: var(--primary-soft); }
+.notif-item b { font-size: 14px; display: block; }
+.notif-item .msg { font-size: 13px; color: var(--muted); }
+.notif-item small { color: var(--muted); display: block; margin-top: 2px; }
+</style>

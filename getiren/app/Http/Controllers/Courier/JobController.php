@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Notifications\OrderNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +88,8 @@ class JobController extends Controller
             'status' => OrderStatus::Assigned,
         ]);
 
+        $order->customer->notify(new OrderNotification($order, 'Kuryen atandı', "#{$order->code} siparişini {$request->user()->name} üstlendi."));
+
         return redirect()->route('courier.jobs.show', $order)->with('success', $order->code.' üstlenildi.');
     }
 
@@ -103,6 +106,10 @@ class JobController extends Controller
         abort_if($next === null, 422);
 
         $order->update(['status' => $next]);
+
+        if ($next === OrderStatus::OnTheWay) {
+            $order->customer->notify(new OrderNotification($order, 'Siparişin yolda', "#{$order->code} yola çıktı, birazdan kapında."));
+        }
 
         return back()->with('success', 'Durum: '.$next->label());
     }
@@ -166,9 +173,14 @@ class JobController extends Controller
         });
 
         $order->refresh();
-        $msg = $order->status === OrderStatus::Delivered
-            ? $order->code.' teslim edildi · '.number_format((float) $order->refund_amount, 0, ',', '.').' TL iade.'
-            : $order->code.' · fiş blokeyi aştı, ek ödeme bekleniyor.';
+
+        if ($order->status === OrderStatus::Delivered) {
+            $order->customer->notify(new OrderNotification($order, 'Siparişin teslim edildi', "#{$order->code} teslim edildi. Fazla blokaj cüzdanına iade edildi."));
+            $msg = $order->code.' teslim edildi · '.number_format((float) $order->refund_amount, 0, ',', '.').' TL iade.';
+        } else {
+            $order->customer->notify(new OrderNotification($order, 'Ek ödeme gerekiyor', "#{$order->code} için fiş blokeyi aştı — {$order->extra_required_amount} TL ek ödeme gerekiyor."));
+            $msg = $order->code.' · fiş blokeyi aştı, ek ödeme bekleniyor.';
+        }
 
         return redirect()->route('courier.dashboard')->with('success', $msg);
     }
