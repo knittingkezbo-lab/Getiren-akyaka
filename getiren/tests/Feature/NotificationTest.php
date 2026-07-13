@@ -12,6 +12,7 @@ use Database\Seeders\PriceHintSeeder;
 use Database\Seeders\SettingSeeder;
 use Database\Seeders\ZoneSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class NotificationTest extends TestCase
@@ -184,6 +185,85 @@ class NotificationTest extends TestCase
         $this->assertTrue($events['assigned']);
         $this->assertFalse($events['on_the_way']);
         $this->assertFalse($events['extra']);
+    }
+
+    public function test_courier_can_update_notification_preferences(): void
+    {
+        $courier = $this->makeCourier();
+
+        $this->actingAs($courier)->put('/kurye/tercihler/bildirimler', [
+            'notify_email' => false,
+            'notify_web' => true,
+            'events' => ['new_job' => false, 'assigned_courier' => true, 'cancelled' => true],
+        ])->assertRedirect();
+
+        $courier->refresh();
+        $this->assertFalse($courier->notify_email);
+        $this->assertFalse($courier->notification_events['new_job']);
+        $this->assertTrue($courier->notification_events['assigned_courier']);
+    }
+
+    public function test_courier_can_mute_new_job_broadcast(): void
+    {
+        $courier = $this->makeCourier();
+        $courier->update(['notification_events' => ['new_job' => false]]);
+        $customer = $this->makeCustomer(1000);
+        $zone = Zone::where('key', 'akyaka')->first();
+
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id]);
+
+        // new_job kapalı → kurye zil bildirimi almaz
+        $this->assertEquals(0, $courier->fresh()->notifications()->count());
+    }
+
+    public function test_customer_cannot_access_courier_settings(): void
+    {
+        $customer = $this->makeCustomer(100);
+
+        $this->actingAs($customer)->get('/kurye/tercihler')->assertForbidden();
+    }
+
+    public function test_courier_can_update_account_info(): void
+    {
+        $courier = $this->makeCourier();
+
+        $this->actingAs($courier)->put('/kurye/tercihler', [
+            'name' => 'Yeni İsim',
+            'email' => 'yeni@getiren.test',
+            'phone' => '555 111 22 33',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $courier->refresh();
+        $this->assertEquals('Yeni İsim', $courier->name);
+        $this->assertEquals('yeni@getiren.test', $courier->email);
+        $this->assertEquals('555 111 22 33', $courier->phone);
+    }
+
+    public function test_courier_can_change_password(): void
+    {
+        $courier = $this->makeCourier();
+
+        $this->actingAs($courier)->put('/kurye/tercihler/sifre', [
+            'current_password' => 'password',
+            'password' => 'yeni-sifre-123',
+            'password_confirmation' => 'yeni-sifre-123',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertTrue(Hash::check('yeni-sifre-123', $courier->fresh()->password));
+    }
+
+    public function test_courier_password_change_requires_correct_current(): void
+    {
+        $courier = $this->makeCourier();
+
+        $this->actingAs($courier)->put('/kurye/tercihler/sifre', [
+            'current_password' => 'yanlis-sifre',
+            'password' => 'yeni-sifre-123',
+            'password_confirmation' => 'yeni-sifre-123',
+        ])->assertSessionHasErrors('current_password');
+
+        // Şifre değişmedi
+        $this->assertTrue(Hash::check('password', $courier->fresh()->password));
     }
 
     public function test_mark_all_read_clears_unread(): void

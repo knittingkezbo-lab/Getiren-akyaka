@@ -8,6 +8,7 @@ use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Courier\JobController;
+use App\Http\Controllers\Courier\SettingsController as CourierSettings;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\OrderController as AdminOrders;
 use App\Http\Controllers\Admin\CourierController as AdminCouriers;
@@ -58,6 +59,12 @@ Route::middleware('auth')->group(function () {
     // Kurye alanı
     Route::middleware('role:courier')->prefix('kurye')->name('courier.')->group(function () {
         Route::get('/', [JobController::class, 'index'])->name('dashboard');
+
+        Route::get('/tercihler', [CourierSettings::class, 'edit'])->name('settings');
+        Route::put('/tercihler', [CourierSettings::class, 'updateInfo'])->name('settings.info');
+        Route::put('/tercihler/sifre', [CourierSettings::class, 'updatePassword'])->name('settings.password');
+        Route::put('/tercihler/bildirimler', [CourierSettings::class, 'updateNotifications'])->name('settings.notifications');
+
         Route::get('/is/{order}', [JobController::class, 'show'])->name('jobs.show');
         Route::post('/is/{order}/ustlen', [JobController::class, 'accept'])->name('jobs.accept');
         Route::post('/is/{order}/durum', [JobController::class, 'advance'])->name('jobs.advance');

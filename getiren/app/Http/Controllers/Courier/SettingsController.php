@@ -1,41 +1,33 @@
 <?php
 
-namespace App\Http\Controllers\Customer;
+namespace App\Http\Controllers\Courier;
 
 use App\Http\Controllers\Controller;
-use App\Models\Zone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class ProfileController extends Controller
+class SettingsController extends Controller
 {
-    /** Müşterinin profilden aç/kapat yapabildiği olay anahtarları. */
-    private const CUSTOMER_EVENTS = ['assigned', 'on_the_way', 'delivered', 'extra'];
+    /** Kuryenin profilden aç/kapat yapabildiği bildirim olayları. */
+    private const COURIER_EVENTS = ['new_job', 'assigned_courier', 'cancelled'];
 
     public function edit(Request $request): Response
     {
-        $user = $request->user()->loadMissing('addresses');
-        $address = $user->addresses->firstWhere('is_default', true) ?? $user->addresses->first();
+        $user = $request->user();
 
-        return Inertia::render('Customer/Profile', [
+        return Inertia::render('Courier/Settings', [
             'profile' => [
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
             ],
-            'address' => $address ? [
-                'label' => $address->label,
-                'line' => $address->line,
-                'zone_id' => $address->zone_id,
-            ] : null,
-            'zones' => Zone::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
             'notifications' => [
                 'notify_email' => (bool) $user->notify_email,
                 'notify_web' => (bool) $user->notify_web,
-                'events' => $user->eventPrefs(self::CUSTOMER_EVENTS),
+                'events' => $user->eventPrefs(self::COURIER_EVENTS),
             ],
         ]);
     }
@@ -51,22 +43,6 @@ class ProfileController extends Controller
         $request->user()->update($data);
 
         return back()->with('success', 'Bilgilerin güncellendi.');
-    }
-
-    public function updateAddress(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'label' => ['required', 'string', 'max:100'],
-            'line' => ['required', 'string', 'max:255'],
-            'zone_id' => ['nullable', 'integer', 'exists:zones,id'],
-        ]);
-
-        $request->user()->addresses()->updateOrCreate(
-            ['is_default' => true],
-            ['label' => $data['label'], 'line' => $data['line'], 'zone_id' => $data['zone_id'] ?? null],
-        );
-
-        return back()->with('success', 'Adresin güncellendi.');
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -92,7 +68,7 @@ class ProfileController extends Controller
 
         // Yalnızca bilinen olay anahtarlarını sakla (eksik = açık)
         $provided = $data['events'] ?? [];
-        $events = collect(self::CUSTOMER_EVENTS)
+        $events = collect(self::COURIER_EVENTS)
             ->mapWithKeys(fn (string $key) => [$key => (bool) ($provided[$key] ?? true)])
             ->all();
 

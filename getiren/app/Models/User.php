@@ -65,4 +65,19 @@ class User extends Authenticatable
     {
         return $this->role === UserRole::Customer;
     }
+
+    /**
+     * Verilen olay anahtarları için bildirim tercihi haritası (kayıtlı değilse = açık).
+     *
+     * @param  array<int, string>  $keys
+     * @return array<string, bool>
+     */
+    public function eventPrefs(array $keys): array
+    {
+        $prefs = $this->notification_events ?? [];
+
+        return collect($keys)
+            ->mapWithKeys(fn (string $key) => [$key => (bool) ($prefs[$key] ?? true)])
+            ->all();
+    }
 }

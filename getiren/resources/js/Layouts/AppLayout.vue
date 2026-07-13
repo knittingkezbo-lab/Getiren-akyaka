@@ -22,6 +22,7 @@ const navByRole = {
     ],
     courier: [
         { label: 'İşler', icon: '🛵', href: '/kurye' },
+        { label: 'Ayarlar', icon: '⚙️', href: '/kurye/tercihler' },
     ],
     admin: [
         { label: 'Panel', icon: '📊', href: '/yonetici' },
