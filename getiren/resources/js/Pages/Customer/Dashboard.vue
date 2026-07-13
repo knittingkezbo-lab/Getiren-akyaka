@@ -14,7 +14,7 @@ const money = (n) => Number(n).toLocaleString('tr-TR');
 
 // Sipariş durum çizelgesi
 const steps = [
-    { key: 'reserved', label: 'Bloke' },
+    { key: 'reserved', label: 'Provizyon' },
     { key: 'assigned', label: 'Kurye atandı' },
     { key: 'shopping', label: 'Alışverişte' },
     { key: 'on_the_way', label: 'Yolda' },
@@ -41,8 +41,8 @@ const badgeClass = (status) =>
 
     <AppLayout :title="`Merhaba ${firstName} 👋`" subtitle="Bugün ne getirelim?">
         <template #actions>
-            <div class="walletchip"><span class="muted">Cüzdan</span> <b>{{ money(stats.balance) }} TL</b></div>
-            <Link class="btn btn--soft btn--sm" href="/musteri/cuzdan">+ Yükle</Link>
+            <div class="walletchip"><span class="muted">Kullanılabilir</span> <b>{{ money(stats.balance) }} TL</b></div>
+            <Link class="btn btn--soft btn--sm" href="/musteri/cuzdan">+ Ekle</Link>
         </template>
 
         <div class="stack" style="gap:20px">
@@ -56,7 +56,7 @@ const badgeClass = (status) =>
                     <div style="max-width:44ch">
                         <p class="eyebrow" style="color:#ffe1cf">Yeni sipariş</p>
                         <h2 style="color:#fff; font-size:27px; margin:4px 0 6px">Ne lazımsa yaz, gerisini bize bırak.</h2>
-                        <p style="color:#ffe7d8">Tutarı bloke ederiz, gerçek fişe göre keser, fazlasını iade ederiz.</p>
+                        <p style="color:#ffe7d8">Tutarı provizyona alırız, gerçek fişe göre keser, fazlasını iade ederiz.</p>
                     </div>
                     <span class="btn" style="background:#fff; color:var(--primary-2)">Sipariş oluştur →</span>
                 </div>
@@ -83,7 +83,7 @@ const badgeClass = (status) =>
                         <span class="avatar avatar--sm">{{ (activeOrder.courier_name || '—').slice(0, 1) }}</span>
                         <div>
                             <b>{{ activeOrder.courier_name || 'Kurye atanıyor' }}</b>
-                            <small class="muted">{{ activeOrder.zone_name }} · Bloke {{ money(activeOrder.reserved_amount) }} TL</small>
+                            <small class="muted">{{ activeOrder.zone_name }} · Provizyon {{ money(activeOrder.reserved_amount) }} TL</small>
                         </div>
                     </div>
                     <Link class="btn btn--ghost btn--sm" :href="`/musteri/siparisler/${activeOrder.id}`">Takip et →</Link>
@@ -99,7 +99,7 @@ const badgeClass = (status) =>
             <!-- istatistikler -->
             <div class="stats">
                 <div class="stat"><div class="k">💳 Kullanılabilir</div><div class="v">{{ money(stats.balance) }} <small>TL</small></div></div>
-                <div class="stat"><div class="k">🔒 Bloke</div><div class="v">{{ money(stats.reserved) }} <small>TL</small></div></div>
+                <div class="stat"><div class="k">🔒 Provizyon</div><div class="v">{{ money(stats.reserved) }} <small>TL</small></div></div>
                 <div class="stat"><div class="k">📦 Bu ay</div><div class="v">{{ stats.month_count }} <small>sipariş</small></div></div>
             </div>
 

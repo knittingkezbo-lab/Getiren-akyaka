@@ -19,7 +19,7 @@ const navByRole = {
         { label: 'Panel', icon: '🏠', href: '/musteri' },
         { label: 'Yeni sipariş', icon: '➕', href: '/musteri/siparis/yeni' },
         { label: 'Siparişlerim', icon: '🧾', href: '/musteri/siparisler' },
-        { label: 'Cüzdan', icon: '💳', href: '/musteri/cuzdan' },
+        { label: 'Ödeme', icon: '💳', href: '/musteri/cuzdan' },
         { label: 'Profil', icon: '👤', href: '/musteri/profil' },
     ],
     courier: [

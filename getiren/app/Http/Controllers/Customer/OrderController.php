@@ -124,7 +124,7 @@ class OrderController extends Controller
                 -$est['reserved_amount'],
                 $est['reserved_amount'],
                 $order,
-                'Sipariş bloke edildi',
+                'Sipariş provizyona alındı',
             );
 
             return $order;
@@ -145,7 +145,7 @@ class OrderController extends Controller
 
         return redirect()->route('customer.orders.show', $order)->with(
             'success',
-            $order->code.' oluşturuldu · '.number_format($est['reserved_amount'], 0, ',', '.').' TL bloke edildi.',
+            $order->code.' oluşturuldu · '.number_format($est['reserved_amount'], 0, ',', '.').' TL provizyona alındı.',
         );
     }
 
@@ -207,7 +207,7 @@ class OrderController extends Controller
                 (float) $locked->reserved_amount,
                 -(float) $locked->reserved_amount,
                 $locked,
-                'Sipariş iptal · bloke çözüldü',
+                'Sipariş iptal · provizyon çözüldü',
             );
             $locked->update(['status' => OrderStatus::Cancelled]);
         });
@@ -224,7 +224,7 @@ class OrderController extends Controller
 
         return redirect()->route('customer.dashboard')->with(
             'success',
-            $order->code.' iptal edildi · '.number_format((float) $order->reserved_amount, 0, ',', '.').' TL bloke çözüldü.',
+            $order->code.' iptal edildi · '.number_format((float) $order->reserved_amount, 0, ',', '.').' TL provizyon çözüldü.',
         );
     }
 

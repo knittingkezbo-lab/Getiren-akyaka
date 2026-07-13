@@ -52,7 +52,7 @@ const setFilter = (key) =>
 
             <div class="tablewrap">
                 <table class="tbl">
-                    <thead><tr><th>Sipariş</th><th>İçerik</th><th>Bölge</th><th>Durum</th><th class="num">Bloke</th><th class="num">Fiş</th><th></th></tr></thead>
+                    <thead><tr><th>Sipariş</th><th>İçerik</th><th>Bölge</th><th>Durum</th><th class="num">Provizyon</th><th class="num">Fiş</th><th></th></tr></thead>
                     <tbody>
                         <tr v-for="o in orders.data" :key="o.id">
                             <td><b>#{{ o.code }}</b><br /><small class="muted">{{ o.created_at }}</small></td>

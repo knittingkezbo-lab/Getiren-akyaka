@@ -35,7 +35,7 @@ onMounted(() => {
             <div class="authside">
                 <span class="brand"><span class="brand__mark">◐</span> getiren<b>akyaka</b></span>
                 <h2>Gökova’nın<br />getir-götür ustası.</h2>
-                <p>Ne lazımsa yaz; tutarı bloke edelim, gerçek fişe göre keselim, fazlasını iade edelim.</p>
+                <p>Ne lazımsa yaz; tutarı provizyona alalım, gerçek fişe göre keselim, fazlasını iade edelim.</p>
                 <ul class="authpoints">
                     <li><span class="tick">✓</span> Şeffaf bloke &amp; iade</li>
                     <li><span class="tick">✓</span> Akyaka · Gökova · Akçapınar</li>

@@ -71,7 +71,7 @@ const save = () => form.post('/yonetici/ayarlar', { preserveScroll: true });
                     <div class="card__head"><div><p class="eyebrow">Önizleme</p><h2>Örnek hesap</h2></div></div>
                     <div class="alert alert--info">
                         <span class="alert__ic">ℹ</span>
-                        <div>400 TL ürün → <b>{{ Math.ceil((400 * form.settings.safety_buffer_pct) / 100) }} TL</b> güvenlik payı bloke edilir. Asgari ürün tutarı: <b>{{ money(form.settings.min_order_total) }} TL</b>.</div>
+                        <div>400 TL ürün → <b>{{ Math.ceil((400 * form.settings.safety_buffer_pct) / 100) }} TL</b> güvenlik payı provizyona eklenir. Asgari ürün tutarı: <b>{{ money(form.settings.min_order_total) }} TL</b>.</div>
                     </div>
                 </div>
             </div>

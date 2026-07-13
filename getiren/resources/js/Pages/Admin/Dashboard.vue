@@ -32,7 +32,7 @@ const assign = (orderId, e) => {
             <div class="stats" style="grid-template-columns:repeat(4,1fr)">
                 <div class="stat stat--primary"><div class="k">Bugünkü sipariş</div><div class="v">{{ kpis.today_orders }}</div></div>
                 <div class="stat"><div class="k">Ciro (tahsil)</div><div class="v">{{ money(kpis.revenue_today) }} <small>TL</small></div></div>
-                <div class="stat"><div class="k">Bloke tutar</div><div class="v">{{ money(kpis.blocked_total) }} <small>TL</small></div></div>
+                <div class="stat"><div class="k">Provizyon tutarı</div><div class="v">{{ money(kpis.blocked_total) }} <small>TL</small></div></div>
                 <div class="stat"><div class="k">Kurye</div><div class="v">{{ kpis.couriers }}</div></div>
             </div>
 

@@ -39,11 +39,11 @@ class WalletController extends Controller
         $user = $request->user()->loadMissing('wallet');
         $wallet = $user->wallet ?? $user->wallet()->create(['balance' => 0, 'reserved' => 0, 'currency' => 'TRY']);
 
-        $wallet->recordTransaction(TransactionType::TopUp, (float) $data['amount'], 0, null, 'Bakiye yükleme');
+        $wallet->recordTransaction(TransactionType::TopUp, (float) $data['amount'], 0, null, 'Demo bakiye ekleme');
 
         return redirect()->route('customer.wallet')->with(
             'success',
-            number_format((float) $data['amount'], 0, ',', '.').' TL yüklendi.',
+            number_format((float) $data['amount'], 0, ',', '.').' TL eklendi (demo).',
         );
     }
 

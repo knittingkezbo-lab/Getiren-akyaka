@@ -10,8 +10,9 @@ fişe göre keser, fazlasını iade eder** (yetmezse ek ödeme ister). Her para 
 
 ## Öne çıkan özellikler
 
-- **Sanal cüzdan + ledger** — bloke → fişe göre kes → fark iade; 6 işlem türü, tek geçiş
-  noktası (`Wallet::recordTransaction`), değişmez defter (`balance == Σamount`).
+- **Ödeme / provizyon (demo) + ledger** — kullanıcıya provizyon dili (demo modu; gerçek kart
+  provizyonu ödeme sağlayıcısı bağlanınca), arka planda değişmez defter: bloke → fişe göre kes →
+  fark iade; 6 işlem türü, tek geçiş noktası `Wallet::recordTransaction`, `balance == Σamount`.
 - **Sipariş akışı** — serbest-metin tahmini (yazarken öneri + gerçek fişten sözlük öğrenme),
   kurye üstlenme → alışveriş → yolda → fiş, ek-ödeme tamamlama, iptal + iade (çift-iptal kilidi).
 - **Bildirimler** — uygulama-içi zil + e-posta + **canlı WebSocket**. Kanal (e-posta /

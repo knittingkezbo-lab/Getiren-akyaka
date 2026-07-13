@@ -84,7 +84,7 @@ const settle = () => form.post(`/kurye/is/${props.order.id}/fis`);
                 <div class="ticket">
                     <p class="eyebrow">Siparişi kapat</p><h3 style="margin:2px 0 4px">Tahsilat</h3>
                     <hr class="ticket__perf" />
-                    <div class="ticket__row"><span>Bloke edilen</span><b>{{ money(order.reserved_amount) }} TL</b></div>
+                    <div class="ticket__row"><span>Provizyon</span><b>{{ money(order.reserved_amount) }} TL</b></div>
                     <div class="ticket__row"><span>Fiş (ürünler)</span><b>{{ money(fisTotal) }} TL</b></div>
                     <div class="ticket__row"><span>Hizmet bedeli</span><b>{{ money(order.service_fee) }} TL</b></div>
                     <hr class="ticket__perf" />
@@ -94,7 +94,7 @@ const settle = () => form.post(`/kurye/is/${props.order.id}/fis`);
 
                     <div v-if="isOver" class="alert alert--warn" style="margin-top:12px">
                         <span class="alert__ic">!</span>
-                        <div>Fiş blokeyi aştı. Kapatınca sipariş <b>ek ödeme bekliyor</b> olur.</div>
+                        <div>Fiş provizyonu aştı. Kapatınca sipariş <b>ek ödeme bekliyor</b> olur.</div>
                     </div>
 
                     <button class="btn btn--primary btn--block btn--lg" style="margin-top:14px" :disabled="!order.can_settle || form.processing" @click="settle">

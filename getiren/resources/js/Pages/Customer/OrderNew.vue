@@ -112,7 +112,7 @@ const pickSuggestion = (kw) => {
 
     <AppLayout title="Yeni sipariş" subtitle="Üç adımda hazır — acele etme, biz buradayız.">
         <template #actions>
-            <div class="walletchip"><span class="muted">Cüzdan</span> <b>{{ money(balance) }} TL</b></div>
+            <div class="walletchip"><span class="muted">Kullanılabilir</span> <b>{{ money(balance) }} TL</b></div>
         </template>
 
         <div class="grid col-wide" style="align-items:start">
@@ -182,9 +182,9 @@ const pickSuggestion = (kw) => {
                         <div class="ticket__row"><span>%{{ bufferPct }} güvenlik payı</span><b>{{ money(estimate.buffer) }} TL</b></div>
                         <div class="ticket__row"><span>Teslimat · {{ selectedZone?.name }}</span><b>{{ money(estimate.fee) }} TL</b></div>
                         <hr class="ticket__perf" />
-                        <div class="ticket__row ticket__row--total"><span>Bloke edilecek</span><b>{{ money(estimate.total) }} TL</b></div>
+                        <div class="ticket__row ticket__row--total"><span>Provizyona alınacak</span><b>{{ money(estimate.total) }} TL</b></div>
                         <div class="ticket__row">
-                            <span>Kalan bakiye</span>
+                            <span>Kalan (demo)</span>
                             <b class="num" :style="remaining < 0 ? 'color:var(--danger)' : ''">{{ money(remaining) }} TL</b>
                         </div>
                     </template>
@@ -210,9 +210,9 @@ const pickSuggestion = (kw) => {
                         :disabled="!canAfford || !form.terms_accepted || form.processing"
                         @click="submit"
                     >
-                        {{ form.processing ? 'Bloke ediliyor…' : estimate ? `Onayla ve ${money(estimate.total)} TL bloke et` : 'Onayla ve bloke et' }}
+                        {{ form.processing ? 'Provizyona alınıyor…' : estimate ? `Onayla ve ${money(estimate.total)} TL provizyona al` : 'Onayla ve provizyona al' }}
                     </button>
-                    <p v-if="estimate && !canAfford" class="error-text" style="justify-content:center; margin-top:8px">Yetersiz bakiye</p>
+                    <p v-if="estimate && !canAfford" class="error-text" style="justify-content:center; margin-top:8px">Yetersiz demo bakiye</p>
                     <Link href="/musteri" class="btn btn--ghost btn--block" style="margin-top:8px">Vazgeç</Link>
                 </div>
             </div>
@@ -220,7 +220,7 @@ const pickSuggestion = (kw) => {
 
         <!-- mobil alt onay barı -->
         <div class="stickybar" v-if="estimate">
-            <div><small class="muted">Bloke edilecek</small><br /><b>{{ money(estimate.total) }} TL</b></div>
+            <div><small class="muted">Provizyona alınacak</small><br /><b>{{ money(estimate.total) }} TL</b></div>
             <button class="btn btn--primary" :disabled="!canAfford || !form.terms_accepted || form.processing" @click="submit">Onayla →</button>
         </div>
     </AppLayout>

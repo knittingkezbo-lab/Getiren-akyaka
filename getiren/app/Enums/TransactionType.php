@@ -15,9 +15,9 @@ enum TransactionType: string
     public function label(): string
     {
         return match ($this) {
-            self::TopUp => 'Bakiye yükleme',
-            self::Hold => 'Bloke',
-            self::Release => 'Bloke iadesi',
+            self::TopUp => 'Demo bakiye ekleme',
+            self::Hold => 'Provizyon',
+            self::Release => 'Provizyon çözüldü',
             self::Capture => 'Tahsil',
             self::Refund => 'İade',
             self::ExtraCharge => 'Ek ödeme',

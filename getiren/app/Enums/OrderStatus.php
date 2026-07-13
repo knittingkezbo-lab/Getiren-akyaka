@@ -19,7 +19,7 @@ enum OrderStatus: string
         return match ($this) {
             self::Draft => 'Taslak',
             self::Estimated => 'Tahmin edildi',
-            self::Reserved => 'Bloke edildi',
+            self::Reserved => 'Provizyon alındı',
             self::Assigned => 'Kurye atandı',
             self::Shopping => 'Alışverişte',
             self::OnTheWay => 'Yolda',

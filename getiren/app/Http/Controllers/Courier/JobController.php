@@ -154,7 +154,7 @@ class JobController extends Controller
                     'receipt' => $receipt, 'service_fee' => $serviceFee,
                 ]);
                 // İade: kalan bloke tekrar kullanılabilir bakiyeye döner
-                $wallet->recordTransaction(TransactionType::Refund, $refund, -$refund, $order, 'Fazla blokaj iadesi');
+                $wallet->recordTransaction(TransactionType::Refund, $refund, -$refund, $order, 'Fazla provizyon iadesi');
 
                 $order->update([
                     'status' => OrderStatus::Delivered,
@@ -179,11 +179,11 @@ class JobController extends Controller
         $this->learnUnknownItems($order);
 
         if ($order->status === OrderStatus::Delivered) {
-            $order->customer->notify(new OrderNotification($order, 'Siparişin teslim edildi', "#{$order->code} teslim edildi. Fazla blokaj cüzdanına iade edildi.", event: 'delivered'));
+            $order->customer->notify(new OrderNotification($order, 'Siparişin teslim edildi', "#{$order->code} teslim edildi. Fazla provizyon iade edildi.", event: 'delivered'));
             $msg = $order->code.' teslim edildi · '.number_format((float) $order->refund_amount, 0, ',', '.').' TL iade.';
         } else {
-            $order->customer->notify(new OrderNotification($order, 'Ek ödeme gerekiyor', "#{$order->code} için fiş blokeyi aştı — {$order->extra_required_amount} TL ek ödeme gerekiyor.", event: 'extra'));
-            $msg = $order->code.' · fiş blokeyi aştı, ek ödeme bekleniyor.';
+            $order->customer->notify(new OrderNotification($order, 'Ek ödeme gerekiyor', "#{$order->code} için fiş provizyonu aştı — {$order->extra_required_amount} TL ek ödeme gerekiyor.", event: 'extra'));
+            $msg = $order->code.' · fiş provizyonu aştı, ek ödeme bekleniyor.';
         }
 
         return redirect()->route('courier.dashboard')->with('success', $msg);

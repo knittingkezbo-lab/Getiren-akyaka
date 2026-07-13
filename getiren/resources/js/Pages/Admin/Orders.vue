@@ -69,7 +69,7 @@ const assign = (orderId, e) => {
             <div class="tablewrap">
                 <table class="tbl">
                     <thead>
-                        <tr><th>#</th><th>Müşteri</th><th>İçerik</th><th>Bölge</th><th>Durum</th><th class="num">Bloke</th><th class="num">Fiş</th><th>Kurye</th></tr>
+                        <tr><th>#</th><th>Müşteri</th><th>İçerik</th><th>Bölge</th><th>Durum</th><th class="num">Provizyon</th><th class="num">Fiş</th><th>Kurye</th></tr>
                     </thead>
                     <tbody>
                         <tr v-for="o in orders.data" :key="o.id">

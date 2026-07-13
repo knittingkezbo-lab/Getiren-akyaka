@@ -20,23 +20,28 @@ const iconStyle = (t) =>
 </script>
 
 <template>
-    <Head title="Cüzdan" />
+    <Head title="Ödeme" />
 
-    <AppLayout title="Cüzdan" subtitle="Bakiye, bloke ve hareketler">
+    <AppLayout title="Ödeme" subtitle="Provizyon ve hesap hareketleri">
+        <div class="alert alert--info" style="margin-bottom:16px">
+            <span class="alert__ic">ℹ</span>
+            <div><b>Demo modu:</b> ödemeler simüle edilir. Gerçek kart provizyonu ödeme sağlayıcısı bağlanınca devreye girer; kart bilgin bizde tutulmaz.</div>
+        </div>
+
         <div class="grid col-wide" style="align-items:start">
             <!-- sol: bakiye + yükleme -->
             <div class="stack">
                 <div class="card" style="background:linear-gradient(150deg,#2b2320,#4a3a34); color:#fff; border:0">
-                    <p class="eyebrow" style="color:#ffcf9e">Kullanılabilir bakiye</p>
+                    <p class="eyebrow" style="color:#ffcf9e">Kullanılabilir (demo)</p>
                     <div class="balance" style="color:#fff; margin:8px 0 4px">{{ money(balance) }} <small style="color:#e7d5c6">TL</small></div>
                     <div class="row" style="gap:20px; margin-top:10px">
-                        <span style="color:#e7d5c6">🔒 Bloke: <b style="color:#fff">{{ money(reserved) }} TL</b></span>
+                        <span style="color:#e7d5c6">🔒 Provizyonda: <b style="color:#fff">{{ money(reserved) }} TL</b></span>
                         <span style="color:#e7d5c6">Σ Toplam: <b style="color:#fff">{{ money(balance + reserved) }} TL</b></span>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card__head"><div><p class="eyebrow">Bakiye yükle</p><h2>Ne kadar yükleyelim?</h2></div></div>
+                    <div class="card__head"><div><p class="eyebrow">Demo bakiye ekle</p><h2>Ne kadar ekleyelim?</h2></div></div>
                     <div class="pick" style="grid-template-columns:repeat(3,1fr)">
                         <template v-for="p in presets" :key="p">
                             <input :id="'p' + p" type="radio" :value="p" v-model.number="form.amount" />
@@ -50,10 +55,10 @@ const iconStyle = (t) =>
                     </div>
                     <div class="alert alert--info">
                         <span class="alert__ic">🔒</span>
-                        <div>Gerçekte ödeme sağlayıcısına yönlendirilirsin; kart bilgin bizde tutulmaz. (demo: anında yüklenir)</div>
+                        <div>Demo: tutar anında eklenir. Canlıda ödeme sağlayıcısında provizyona alınır; kart bilgin bizde tutulmaz.</div>
                     </div>
                     <button class="btn btn--primary btn--block btn--lg" style="margin-top:14px" :disabled="form.processing" @click="topup">
-                        {{ form.processing ? 'Yükleniyor…' : `${money(form.amount || 0)} TL yükle` }}
+                        {{ form.processing ? 'Ekleniyor…' : `${money(form.amount || 0)} TL ekle (demo)` }}
                     </button>
                 </div>
             </div>

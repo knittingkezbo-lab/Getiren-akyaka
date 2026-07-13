@@ -59,7 +59,7 @@ const accept = (id) => router.post(`/kurye/is/${id}/ustlen`);
                             <div><b>{{ o.raw_text }}</b><small class="muted">{{ o.zone_name }} · {{ o.customer_name }} · {{ o.created_at }}</small></div>
                         </div>
                         <div class="row">
-                            <span class="badge badge--muted">Bloke {{ money(o.reserved_amount) }} TL</span>
+                            <span class="badge badge--muted">Provizyon {{ money(o.reserved_amount) }} TL</span>
                             <button class="btn btn--primary btn--sm" @click="accept(o.id)">Üstlen</button>
                         </div>
                     </div>

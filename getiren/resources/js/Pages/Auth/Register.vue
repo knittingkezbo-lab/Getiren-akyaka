@@ -28,11 +28,11 @@ const submit = () =>
             <div class="authside">
                 <span class="brand"><span class="brand__mark">◐</span> getiren<b>akyaka</b></span>
                 <h2>Dakikalar içinde<br />ilk siparişin hazır.</h2>
-                <p>Cüzdanına yükle, ne lazımsa yaz, gerisini kuryelerimize bırak.</p>
+                <p>Ne lazımsa yaz; tutarı provizyona alalım, gerçek fişe göre keselim, fazlasını iade edelim.</p>
                 <ul class="authpoints">
                     <li><span class="tick">1</span> Hesabını oluştur</li>
-                    <li><span class="tick">2</span> Cüzdana bakiye yükle</li>
-                    <li><span class="tick">3</span> Siparişini yaz, onayla</li>
+                    <li><span class="tick">2</span> Ne lazımsa yaz</li>
+                    <li><span class="tick">3</span> Onayla, kapına gelsin</li>
                 </ul>
             </div>
 

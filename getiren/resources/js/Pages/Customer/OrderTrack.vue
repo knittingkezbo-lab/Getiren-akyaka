@@ -11,7 +11,7 @@ const props = defineProps({
 const money = (n) => Number(n).toLocaleString('tr-TR');
 
 const steps = [
-    { key: 'reserved', label: 'Bloke' },
+    { key: 'reserved', label: 'Provizyon' },
     { key: 'assigned', label: 'Kurye atandı' },
     { key: 'shopping', label: 'Alışverişte' },
     { key: 'on_the_way', label: 'Yolda' },
@@ -82,7 +82,7 @@ const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-
 
                     <div v-if="isCancelled" class="alert alert--danger">
                         <span class="alert__ic">✕</span>
-                        <div>Bu sipariş iptal edildi; bloke çözüldü.</div>
+                        <div>Bu sipariş iptal edildi; provizyon çözüldü.</div>
                     </div>
                     <template v-else>
                         <div class="steps">
@@ -93,11 +93,11 @@ const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-
                         </div>
                         <div v-if="order.status === 'requires_extra_payment'" class="alert alert--warn" style="margin-top:18px">
                             <span class="alert__ic">!</span>
-                            <div>Fiş blokeyi aştı — <b>{{ money(order.extra_required_amount) }} TL</b> ek ödeme gerekiyor.</div>
+                            <div>Fiş provizyonu aştı — <b>{{ money(order.extra_required_amount) }} TL</b> ek ödeme gerekiyor.</div>
                         </div>
                         <div v-else-if="order.status === 'delivered'" class="alert alert--ok" style="margin-top:18px">
                             <span class="alert__ic">✓</span>
-                            <div v-if="order.refund_amount">Teslim edildi. Fazla blokaj <b>{{ money(order.refund_amount) }} TL</b> cüzdanına iade edildi.</div>
+                            <div v-if="order.refund_amount">Teslim edildi. Fazla provizyon <b>{{ money(order.refund_amount) }} TL</b> iade edildi.</div>
                             <div v-else-if="order.extra_required_amount">Teslim edildi. Ek ödeme <b>{{ money(order.extra_required_amount) }} TL</b> alındı.</div>
                             <div v-else>Teslim edildi.</div>
                         </div>
@@ -133,7 +133,7 @@ const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-
                 <div class="ticket__row"><span>Teslimat</span><b>{{ money(order.service_fee) }} TL</b></div>
                 <hr class="ticket__perf" />
                 <div class="ticket__row ticket__row--total">
-                    <span>{{ order.captured_amount != null ? 'Tahsil edilen' : 'Bloke' }}</span>
+                    <span>{{ order.captured_amount != null ? 'Tahsil edilen' : 'Provizyon' }}</span>
                     <b>{{ money(order.captured_amount ?? order.reserved_amount) }} TL</b>
                 </div>
                 <div v-if="order.refund_amount" class="ticket__row">
@@ -146,13 +146,13 @@ const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-
                     style="margin-top:10px"
                 >
                     <span class="badge badge--sage">Fazlası iade</span>
-                    <p class="hint" style="margin:0">Fiş kesinleşince fark cüzdanına döner.</p>
+                    <p class="hint" style="margin:0">Fiş kesinleşince fark iade edilir.</p>
                 </div>
 
                 <template v-if="order.status === 'requires_extra_payment'">
                     <hr class="ticket__perf" />
                     <div class="ticket__row"><span>Ek ödeme gerekiyor</span><b class="num" style="color:var(--danger)">{{ money(order.extra_required_amount) }} TL</b></div>
-                    <div class="ticket__row"><span>Kullanılabilir bakiye</span><b class="num">{{ money(balance) }} TL</b></div>
+                    <div class="ticket__row"><span>Kullanılabilir (demo)</span><b class="num">{{ money(balance) }} TL</b></div>
                     <p v-if="extraForm.errors.extra" class="error-text" style="margin-top:8px">⚠ {{ extraForm.errors.extra }}</p>
                     <button
                         v-if="balance >= order.extra_required_amount"
@@ -164,8 +164,8 @@ const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-
                         {{ extraForm.processing ? 'İşleniyor…' : `${money(order.extra_required_amount)} TL öde ve tamamla` }}
                     </button>
                     <template v-else>
-                        <div class="alert alert--warn" style="margin-top:12px"><span class="alert__ic">!</span><div>Ek ödeme için bakiye yetersiz.</div></div>
-                        <Link href="/musteri/cuzdan" class="btn btn--soft btn--block" style="margin-top:8px">Cüzdana yükle</Link>
+                        <div class="alert alert--warn" style="margin-top:12px"><span class="alert__ic">!</span><div>Ek ödeme için demo bakiye yetersiz.</div></div>
+                        <Link href="/musteri/cuzdan" class="btn btn--soft btn--block" style="margin-top:8px">Demo bakiye ekle</Link>
                     </template>
                 </template>
 

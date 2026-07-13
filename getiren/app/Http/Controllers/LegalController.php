@@ -88,7 +88,7 @@ class LegalController extends Controller
                 'title' => 'İptal ve İade',
                 'blocks' => [
                     ['h' => 'İptal', 'p' => [
-                        'Kurye alışverişe başlamadan önce sipariş iptal edilebilir ve bloke edilen tutar çözülür.',
+                        'Kurye alışverişe başlamadan önce sipariş iptal edilebilir ve provizyona alınan tutar çözülür.',
                         'Alışveriş başladıktan sonra iptal/iade, ürünün niteliğine ve alışveriş yapılan işletmenin koşullarına bağlıdır. Başlamış hizmet bedeli iade edilmeyebilir.',
                     ]],
                     ['h' => 'İade', 'p' => [
