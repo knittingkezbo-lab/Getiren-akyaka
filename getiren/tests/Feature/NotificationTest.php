@@ -107,14 +107,15 @@ class NotificationTest extends TestCase
         [$customer, $order] = $this->reservedOrder();
         $notification = new OrderNotification($order, 'Test', 'mesaj');
 
+        // Web açıkken canlı push (broadcast) da eklenir
         $customer->update(['notify_email' => false, 'notify_web' => true]);
-        $this->assertEquals(['database'], $notification->via($customer->fresh()));
+        $this->assertEquals(['database', 'broadcast'], $notification->via($customer->fresh()));
 
         $customer->update(['notify_email' => true, 'notify_web' => false]);
         $this->assertEquals(['mail'], $notification->via($customer->fresh()));
 
         $customer->update(['notify_email' => true, 'notify_web' => true]);
-        $this->assertEquals(['database', 'mail'], $notification->via($customer->fresh()));
+        $this->assertEquals(['database', 'mail', 'broadcast'], $notification->via($customer->fresh()));
     }
 
     public function test_disabling_web_pref_skips_database_notification(): void

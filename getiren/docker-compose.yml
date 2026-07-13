@@ -85,6 +85,24 @@ services:
     networks:
       - getiren
 
+  # WebSocket sunucusu (canlı zil + sipariş takibi) — Reverb standalone, Redis gerekmez
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: getiren-reverb
+    working_dir: /var/www/html
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "8085:8080"   # tarayıcı bu porta bağlanır (VITE_REVERB_PORT)
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - getiren
+
 volumes:
   dbdata:
 

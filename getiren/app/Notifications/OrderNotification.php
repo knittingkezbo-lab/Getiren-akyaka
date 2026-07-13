@@ -31,11 +31,18 @@ class OrderNotification extends Notification
             return [];
         }
 
-        return array_values(array_filter($this->channels, fn (string $channel) => match ($channel) {
+        $channels = array_values(array_filter($this->channels, fn (string $channel) => match ($channel) {
             'mail' => (bool) ($notifiable->notify_email ?? true),
             'database' => (bool) ($notifiable->notify_web ?? true),
             default => true,
         }));
+
+        // Web (database) bildirimi gidiyorsa canlı push'u (broadcast) da ekle — aynı notify_web kuralına tabi
+        if (in_array('database', $channels, true)) {
+            $channels[] = 'broadcast';
+        }
+
+        return $channels;
     }
 
     /** Alıcı kurye ise kurye rotası, değilse müşteri rotası (override edilmediyse). */

@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 defineProps({
     title: { type: String, default: '' },
@@ -56,6 +56,24 @@ const logout = () => router.post('/logout');
 const notifications = computed(() => page.props.notifications ?? { unread: 0, items: [] });
 const bellOpen = ref(false);
 const markAllRead = () => router.post('/bildirimler/oku', {}, { preserveScroll: true, preserveState: true });
+
+// Canlı güncelleme (Reverb/Echo): bildirim yayını gelince mevcut sayfanın verisini tazele.
+// Tek abonelik yeterli — router.reload zil + sipariş takibi + kurye iş listesini birlikte günceller.
+let notifChannel = null;
+onMounted(() => {
+    const id = user.value?.id;
+    if (id && window.Echo) {
+        notifChannel = `App.Models.User.${id}`;
+        window.Echo.private(notifChannel).notification(() => {
+            router.reload({ preserveScroll: true, preserveState: true });
+        });
+    }
+});
+onUnmounted(() => {
+    if (notifChannel && window.Echo) {
+        window.Echo.leave(notifChannel);
+    }
+});
 </script>
 
 <template>
