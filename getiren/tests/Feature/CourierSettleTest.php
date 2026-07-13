@@ -30,6 +30,7 @@ class CourierSettleTest extends TestCase
         $this->actingAs($customer)->post('/musteri/siparis', [
             'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek',
             'zone_id' => $zone->id,
+            'terms_accepted' => true,
         ]);
 
         $order = Order::firstOrFail();
@@ -48,7 +49,7 @@ class CourierSettleTest extends TestCase
     {
         $customer = $this->makeCustomer(1000);
         $zone = Zone::where('key', 'akyaka')->first();
-        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id]);
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
         $order = Order::firstOrFail();
         $courier = $this->makeCourier();
 

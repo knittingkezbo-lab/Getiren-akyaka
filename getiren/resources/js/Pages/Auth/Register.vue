@@ -1,5 +1,6 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import LegalLinks from '@/components/LegalLinks.vue';
 
 const form = useForm({
     first_name: '',
@@ -98,9 +99,9 @@ const submit = () =>
                         <label class="check">
                             <input type="checkbox" v-model="form.terms" />
                             <span>
-                                <a href="#" style="color:var(--primary-2); font-weight:700">Kullanım koşulları</a>
+                                <a href="/hukuki/kullanim-sartlari" target="_blank" rel="noopener" style="color:var(--primary-2); font-weight:700">Kullanım koşulları</a>
                                 ve
-                                <a href="#" style="color:var(--primary-2); font-weight:700">KVKK aydınlatma metni</a>ni
+                                <a href="/hukuki/kvkk" target="_blank" rel="noopener" style="color:var(--primary-2); font-weight:700">KVKK aydınlatma metni</a>ni
                                 okudum, onaylıyorum.
                             </span>
                         </label>
@@ -116,6 +117,8 @@ const submit = () =>
                         <Link href="/login" style="font-weight:800; color:var(--primary-2)">Giriş yap</Link>
                     </p>
                 </form>
+
+                <LegalLinks style="margin-top:18px" />
             </div>
         </div>
     </div>

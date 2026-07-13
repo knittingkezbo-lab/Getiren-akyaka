@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
@@ -16,6 +17,9 @@ use App\Http\Controllers\Admin\CourierController as AdminCouriers;
 use App\Http\Controllers\Admin\SettingController as AdminSettings;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// Hukuki sayfalar — herkese açık (auth/guest fark etmez)
+Route::get('/hukuki/{page}', [LegalController::class, 'show'])->name('legal.show');
 
 // Misafir (giriş yapmamış) rotaları
 Route::middleware('guest')->group(function () {

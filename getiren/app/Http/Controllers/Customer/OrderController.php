@@ -81,6 +81,9 @@ class OrderController extends Controller
             'address_label' => ['nullable', 'string', 'max:100'],
             'address_text' => ['nullable', 'string', 'max:255'],
             'customer_note' => ['nullable', 'string', 'max:255'],
+            'terms_accepted' => ['accepted'],
+        ], [
+            'terms_accepted.accepted' => 'Devam etmek için ön bilgilendirme ve kullanım şartlarını onaylamalısın.',
         ]);
 
         $zone = Zone::where('is_active', true)->findOrFail($data['zone_id']);
@@ -109,6 +112,7 @@ class OrderController extends Controller
                 'service_fee' => $est['service_fee'],
                 'reserved_amount' => $est['reserved_amount'],
                 'status' => OrderStatus::Reserved,
+                'terms_version' => config('features.terms_version'),
                 'reserved_at' => now(),
             ]);
 

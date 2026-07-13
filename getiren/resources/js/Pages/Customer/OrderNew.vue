@@ -18,6 +18,7 @@ const form = useForm({
     address_label: props.addresses[0]?.label ?? 'Ev',
     address_text: props.addresses[0]?.line ?? '',
     customer_note: '',
+    terms_accepted: false,
 });
 
 const money = (n) => Number(n).toLocaleString('tr-TR');
@@ -93,6 +94,7 @@ const submit = () => form.post('/musteri/siparis');
                     <div class="quick">
                         <button v-for="w in quickItems" :key="w" type="button" class="q" @click="addQuick(w)">＋ {{ w }}</button>
                     </div>
+                    <p class="banned-note">⚠ Reçeteli ilaç, alkol, tütün, yaş sınırlı veya hukuka aykırı ürünler temin edilmez.</p>
                 </div>
 
                 <!-- 2 -->
@@ -150,13 +152,22 @@ const submit = () => form.post('/musteri/siparis');
 
                     <div class="alert alert--info" style="margin-top:14px">
                         <span class="alert__ic">ℹ</span>
-                        <div>Bu bir <b>ön hesap</b>. Gerçek fiş düşük çıkarsa fark anında cüzdanına iade edilir.</div>
+                        <div>Getiren Akyaka ürün satıcısı değildir; ürünleri senin adına temin eder. Tutar <b>tahminidir</b>, gerçek fişe göre kesinleşir; fazlası iade edilir.</div>
                     </div>
+
+                    <label class="terms-check" :class="{ 'terms-check--error': form.errors.terms_accepted }">
+                        <input type="checkbox" v-model="form.terms_accepted" />
+                        <span>
+                            <a href="/hukuki/kullanim-sartlari" target="_blank" rel="noopener">Ön bilgilendirme ve kullanım şartlarını</a>
+                            okudum; ürün bedelinin tahmini olduğunu, gerçek fişe göre kesinleşeceğini ve siparişin ödeme yükümlülüğü doğurduğunu kabul ediyorum.
+                        </span>
+                    </label>
+                    <p v-if="form.errors.terms_accepted" class="error-text">⚠ {{ form.errors.terms_accepted }}</p>
 
                     <button
                         class="btn btn--primary btn--block btn--lg"
-                        style="margin-top:16px"
-                        :disabled="!canAfford || form.processing"
+                        style="margin-top:12px"
+                        :disabled="!canAfford || !form.terms_accepted || form.processing"
                         @click="submit"
                     >
                         {{ form.processing ? 'Bloke ediliyor…' : estimate ? `Onayla ve ${money(estimate.total)} TL bloke et` : 'Onayla ve bloke et' }}
@@ -170,7 +181,15 @@ const submit = () => form.post('/musteri/siparis');
         <!-- mobil alt onay barı -->
         <div class="stickybar" v-if="estimate">
             <div><small class="muted">Bloke edilecek</small><br /><b>{{ money(estimate.total) }} TL</b></div>
-            <button class="btn btn--primary" :disabled="!canAfford || form.processing" @click="submit">Onayla →</button>
+            <button class="btn btn--primary" :disabled="!canAfford || !form.terms_accepted || form.processing" @click="submit">Onayla →</button>
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.banned-note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.terms-check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 12.5px; color: var(--muted); cursor: pointer; line-height: 1.45; }
+.terms-check input { margin-top: 2px; flex-shrink: 0; }
+.terms-check a { color: var(--primary-2); font-weight: 700; }
+.terms-check--error { color: #c0392b; }
+</style>

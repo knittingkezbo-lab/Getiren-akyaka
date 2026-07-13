@@ -14,7 +14,7 @@ class Order extends Model
         'address_label', 'address_text', 'customer_note',
         'items_total', 'safety_buffer', 'service_fee', 'reserved_amount',
         'actual_receipt_amount', 'captured_amount', 'refund_amount', 'extra_required_amount',
-        'status', 'reserved_at', 'delivered_at',
+        'status', 'terms_version', 'reserved_at', 'delivered_at',
     ];
 
     protected function casts(): array

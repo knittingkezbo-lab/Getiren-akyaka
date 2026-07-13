@@ -1,6 +1,8 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { startIdleLogout, stopIdleLogout } from '@/composables/useIdleLogout';
+import LegalLinks from '@/components/LegalLinks.vue';
 
 defineProps({
     title: { type: String, default: '' },
@@ -50,7 +52,10 @@ const initials = computed(() =>
         .toUpperCase(),
 );
 
-const logout = () => router.post('/logout');
+const logout = () => {
+    stopIdleLogout();
+    router.post('/logout');
+};
 
 // Bildirimler (paylaşılan prop'tan)
 const notifications = computed(() => page.props.notifications ?? { unread: 0, items: [] });
@@ -74,6 +79,9 @@ onUnmounted(() => {
         window.Echo.leave(notifChannel);
     }
 });
+
+// Hareketsizlik sayacı (singleton composable) — süre boyunca etkileşim olmazsa otomatik çıkış
+startIdleLogout(page.props.sessionIdleMinutes);
 </script>
 
 <template>
@@ -103,6 +111,7 @@ onUnmounted(() => {
                     </div>
                     <button class="btn btn--icon btn--sm" style="width:34px; height:34px" title="Çıkış" @click="logout">⎋</button>
                 </div>
+                <LegalLinks style="margin-top:12px; justify-content:flex-start; gap:2px 10px" />
             </div>
         </aside>
 

@@ -1,5 +1,7 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
+import LegalLinks from '@/components/LegalLinks.vue';
 
 const form = useForm({
     email: 'gencer@bizsim.com',
@@ -11,6 +13,17 @@ const submit = () =>
     form.post('/login', {
         onFinish: () => form.reset('password'),
     });
+
+// Hareketsizlik nedeniyle otomatik çıkış yapıldıysa bilgilendir
+const timedOut = ref(false);
+onMounted(() => {
+    try {
+        if (localStorage.getItem('idle_logout')) {
+            timedOut.value = true;
+            localStorage.removeItem('idle_logout');
+        }
+    } catch (e) { /* yoksay */ }
+});
 </script>
 
 <template>
@@ -35,6 +48,10 @@ const submit = () =>
                 <p class="eyebrow">Tekrar hoş geldin</p>
                 <h2 style="font-size:26px; margin:6px 0 4px">Giriş yap</h2>
                 <p class="muted" style="margin-bottom:20px">Hesabınla devam et.</p>
+
+                <p v-if="timedOut" style="background:var(--primary-soft); color:var(--primary-2); padding:11px 14px; border-radius:12px; font-weight:600; font-size:13.5px; margin-bottom:18px">
+                    Oturumun hareketsizlik nedeniyle güvenlik için kapatıldı — lütfen tekrar giriş yap.
+                </p>
 
                 <form @submit.prevent="submit">
                     <div class="field" :class="{ 'field--error': form.errors.email }">
@@ -72,6 +89,8 @@ const submit = () =>
                         <Link href="/register" style="font-weight:800; color:var(--primary-2)">Kayıt ol</Link>
                     </p>
                 </form>
+
+                <LegalLinks style="margin-top:22px" />
             </div>
         </div>
     </div>

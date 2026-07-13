@@ -50,6 +50,8 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
+            // İstemci hareketsizlik sayacı sunucu oturum ömrüyle aynı olsun (dk)
+            'sessionIdleMinutes' => (int) config('session.lifetime'),
             'notifications' => $request->user() ? [
                 'unread' => $request->user()->unreadNotifications()->count(),
                 'items' => $request->user()->notifications()->latest()->take(8)->get()->map(fn ($n) => [

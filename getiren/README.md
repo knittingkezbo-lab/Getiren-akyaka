@@ -19,6 +19,8 @@ fişe göre keser, fazlasını iade eder** (yetmezse ek ödeme ister). Her para 
 - **Canlı güncelleme** — zil ve sipariş takibi sayfa yenilenmeden güncellenir (Reverb + Echo).
 - **Kayıt güvenliği** — e-posta doğrulama (toggle'lı `MustVerifyEmail`) + **kurye admin onayı**:
   kurye kaydı "onay bekliyor" başlar, admin onaylayana kadar iş alamaz.
+- **Hukuki sertleştirme** — `/hukuki/*` sayfaları (taslak), sipariş onay checkbox'ı +
+  `terms_version` kaydı, yasaklı ürün uyarısı, "ürün satıcısı değil" konumlandırması.
 
 ## Kurulum (Docker)
 
@@ -53,7 +55,8 @@ docker compose exec app php artisan migrate:fresh --seed
 - **Auth** — session (`Auth::attempt`), `EnsureUserHasRole` (`role:` alias), rol → açılış rotası.
   E-posta doğrulama `AUTH_EMAIL_VERIFICATION` ile açılır (`MustVerifyEmail` + imzalı rota +
   `verified` middleware); kapalıyken kayıt anında doğrulanır. Kurye kaydı admin onayı bekler
-  (`courier.approved` middleware). Proxy/tünel arkası için `trustProxies`.
+  (`courier.approved` middleware). Oturum hareketsizlik zaman aşımı: `SESSION_LIFETIME` (30 dk)
+  + istemci idle-logout (`useIdleLogout`). Proxy/tünel arkası için `trustProxies`.
 - **Ledger** — `Wallet::recordTransaction(type, amount, reservedDelta, order, note, meta)`
   tek giriş noktası; bakiye/bloke önbelleğini günceller, değişmez satır yazar.
 - **Bildirim** — `OrderNotification.via()` istenen kanalları alıcının **olay** + **kanal**
@@ -75,7 +78,7 @@ docker compose exec app php artisan migrate:fresh --seed
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test    # 54 test / 186 assertion (sqlite :memory)
+docker compose exec app php artisan test    # 56 test / 190 assertion (sqlite :memory)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) her push'ta iki job koşar:

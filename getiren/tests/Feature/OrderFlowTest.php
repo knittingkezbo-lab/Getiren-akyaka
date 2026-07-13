@@ -30,6 +30,7 @@ class OrderFlowTest extends TestCase
             ->post('/musteri/siparis', [
                 'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek',
                 'zone_id' => $zone->id,
+                'terms_accepted' => true,
             ])
             ->assertRedirect();
 
@@ -60,6 +61,7 @@ class OrderFlowTest extends TestCase
             ->post('/musteri/siparis', [
                 'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek',
                 'zone_id' => $zone->id,
+                'terms_accepted' => true,
             ])
             ->assertSessionHasErrors('raw_text');
 
@@ -72,7 +74,7 @@ class OrderFlowTest extends TestCase
     {
         $customer = $this->makeCustomer(1000);
         $zone = Zone::where('key', 'akyaka')->first();
-        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id]);
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
         $order = Order::firstOrFail();
 
         $this->actingAs($customer)
@@ -92,7 +94,7 @@ class OrderFlowTest extends TestCase
     {
         $owner = $this->makeCustomer(1000);
         $zone = Zone::where('key', 'akyaka')->first();
-        $this->actingAs($owner)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id]);
+        $this->actingAs($owner)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
         $order = Order::firstOrFail();
 
         $intruder = $this->makeCustomer(1000);
@@ -101,5 +103,29 @@ class OrderFlowTest extends TestCase
             ->assertForbidden();
 
         $this->assertEquals(OrderStatus::Reserved, $order->refresh()->status);
+    }
+
+    public function test_order_rejected_without_terms_acceptance(): void
+    {
+        $customer = $this->makeCustomer(1000);
+        $zone = Zone::where('key', 'akyaka')->first();
+
+        $this->actingAs($customer)
+            ->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id]) // onay yok
+            ->assertSessionHasErrors('terms_accepted');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_order_stores_terms_version(): void
+    {
+        $customer = $this->makeCustomer(1000);
+        $zone = Zone::where('key', 'akyaka')->first();
+
+        $this->actingAs($customer)->post('/musteri/siparis', [
+            'raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true,
+        ]);
+
+        $this->assertEquals(config('features.terms_version'), Order::firstOrFail()->terms_version);
     }
 }
