@@ -17,8 +17,8 @@ fişe göre keser, fazlasını iade eder** (yetmezse ek ödeme ister). Her para 
 - **Bildirimler** — uygulama-içi zil + e-posta + **canlı WebSocket**. Kanal (e-posta /
   uygulama) ve olay bazlı tercihler; hem müşteri hem kurye kendi tercihlerini yönetir.
 - **Canlı güncelleme** — zil ve sipariş takibi sayfa yenilenmeden güncellenir (Reverb + Echo).
-- **Kayıt güvenliği** — e-posta doğrulama (toggle'lı `MustVerifyEmail`): açıkken kayıt imzalı
-  doğrulama linki ister, kapalıyken (demo) anında doğrulanır.
+- **Kayıt güvenliği** — e-posta doğrulama (toggle'lı `MustVerifyEmail`) + **kurye admin onayı**:
+  kurye kaydı "onay bekliyor" başlar, admin onaylayana kadar iş alamaz.
 
 ## Kurulum (Docker)
 
@@ -52,7 +52,8 @@ docker compose exec app php artisan migrate:fresh --seed
 
 - **Auth** — session (`Auth::attempt`), `EnsureUserHasRole` (`role:` alias), rol → açılış rotası.
   E-posta doğrulama `AUTH_EMAIL_VERIFICATION` ile açılır (`MustVerifyEmail` + imzalı rota +
-  `verified` middleware); kapalıyken kayıt anında doğrulanır. Proxy/tünel arkası için `trustProxies`.
+  `verified` middleware); kapalıyken kayıt anında doğrulanır. Kurye kaydı admin onayı bekler
+  (`courier.approved` middleware). Proxy/tünel arkası için `trustProxies`.
 - **Ledger** — `Wallet::recordTransaction(type, amount, reservedDelta, order, note, meta)`
   tek giriş noktası; bakiye/bloke önbelleğini günceller, değişmez satır yazar.
 - **Bildirim** — `OrderNotification.via()` istenen kanalları alıcının **olay** + **kanal**
@@ -64,8 +65,8 @@ docker compose exec app php artisan migrate:fresh --seed
 
 ## Veri modeli (migration'lar)
 
-- **users** — `role` (customer/courier/admin), `phone`, `email_verified_at`, `notify_email`,
-  `notify_web`, `notification_events` (JSON: olay bazlı tercih haritası)
+- **users** — `role` (customer/courier/admin), `phone`, `email_verified_at`, `approved_at`
+  (kurye onayı), `notify_email`, `notify_web`, `notification_events` (JSON: olay tercih haritası)
 - **wallets** + **wallet_transactions** — cüzdan + ledger (topup/hold/capture/refund/extra_charge/release)
 - **orders** + **order_items** · **addresses** · **notifications** (database kanalı)
 - **zones** — Akyaka 250 · Gökova 350 · Akçapınar 350 (+ Ataköy pasif)
@@ -74,7 +75,7 @@ docker compose exec app php artisan migrate:fresh --seed
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test    # 49 test / 173 assertion (sqlite :memory)
+docker compose exec app php artisan test    # 54 test / 186 assertion (sqlite :memory)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) her push'ta iki job koşar:

@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'courier.approved' => \App\Http\Middleware\EnsureCourierApproved::class,
         ]);
 
         // Giriş yapmış kullanıcı misafir sayfalarına (login/register) gelirse

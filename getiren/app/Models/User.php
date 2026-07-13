@@ -29,6 +29,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'notify_email' => 'boolean',
             'notify_web' => 'boolean',
             'notification_events' => 'array',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -65,6 +66,18 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isCustomer(): bool
     {
         return $this->role === UserRole::Customer;
+    }
+
+    /** Hesap onaylı mı (kurye onay akışı). */
+    public function isApproved(): bool
+    {
+        return $this->approved_at !== null;
+    }
+
+    /** Hesabı onayla (approved_at Fillable değil → forceFill ile). */
+    public function approve(): void
+    {
+        $this->forceFill(['approved_at' => now()])->save();
     }
 
     /**

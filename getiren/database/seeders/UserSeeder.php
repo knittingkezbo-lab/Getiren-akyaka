@@ -46,7 +46,7 @@ class UserSeeder extends Seeder
 
     private function makeUser(string $name, string $email, UserRole $role, string $phone): User
     {
-        return User::updateOrCreate(
+        $user = User::updateOrCreate(
             ['email' => $email],
             [
                 'name' => $name,
@@ -56,6 +56,13 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ],
         );
+
+        // Seed hesapları onaylı başlar (yalnızca yeni kurye kayıtları pending)
+        if (! $user->isApproved()) {
+            $user->approve();
+        }
+
+        return $user;
     }
 
     private function setupCustomer(User $user, float $topup, string $zoneKey): void

@@ -64,8 +64,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/profil/bildirimler', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
     });
 
-    // Kurye alanı
-    Route::middleware(['role:courier', 'verified'])->prefix('kurye')->name('courier.')->group(function () {
+    // Kurye onay-bekleme ekranı (onay gate'inin DIŞINDA — pending kurye buraya düşer)
+    Route::middleware('role:courier')->get('/kurye/onay-bekleniyor', function () {
+        return auth()->user()->isApproved()
+            ? redirect()->route('courier.dashboard')
+            : Inertia::render('Courier/PendingApproval');
+    })->name('courier.pending');
+
+    // Kurye alanı (onaylı kurye gerekir)
+    Route::middleware(['role:courier', 'verified', 'courier.approved'])->prefix('kurye')->name('courier.')->group(function () {
         Route::get('/', [JobController::class, 'index'])->name('dashboard');
 
         Route::get('/tercihler', [CourierSettings::class, 'edit'])->name('settings');
@@ -87,6 +94,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/siparisler/{order}/ata', [AdminOrders::class, 'assign'])->name('orders.assign');
 
         Route::get('/kuryeler', [AdminCouriers::class, 'index'])->name('couriers');
+        Route::post('/kuryeler/{user}/onayla', [AdminCouriers::class, 'approve'])->name('couriers.approve');
+        Route::post('/kuryeler/{user}/reddet', [AdminCouriers::class, 'reject'])->name('couriers.reject');
 
         Route::get('/ayarlar', [AdminSettings::class, 'index'])->name('settings');
         Route::post('/ayarlar', [AdminSettings::class, 'update'])->name('settings.update');

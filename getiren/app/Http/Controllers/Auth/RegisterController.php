@@ -29,6 +29,7 @@ class RegisterController extends Controller
 
         $role = UserRole::from($data['role']);
         $requireVerification = (bool) config('features.email_verification');
+        $requireApproval = $role === UserRole::Courier; // kurye hesabı admin onayı bekler
 
         $user = User::create([
             'name' => trim($data['first_name'].' '.$data['last_name']),
@@ -41,6 +42,10 @@ class RegisterController extends Controller
         // email_verified_at Fillable değil (güvenlik) → doğrulama kapalıysa açıkça işaretle
         if (! $requireVerification) {
             $user->markEmailAsVerified();
+        }
+        // Müşteri anında onaylı; kurye admin onayına kadar pending kalır
+        if (! $requireApproval) {
+            $user->approve();
         }
 
         // Müşteriye cüzdan aç
@@ -56,6 +61,11 @@ class RegisterController extends Controller
             $user->sendEmailVerificationNotification();
 
             return redirect()->route('verification.notice');
+        }
+
+        // Kurye onay bekliyor → onay-bekleme ekranına
+        if ($requireApproval) {
+            return redirect()->route('courier.pending');
         }
 
         return redirect()->route($user->role->homeRoute());
