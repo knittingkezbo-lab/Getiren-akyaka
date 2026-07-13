@@ -55,7 +55,7 @@ class LegalController extends Controller
                     ['h' => 'İşlenen kişisel veriler', 'list' => [
                         'Kimlik ve iletişim: ad soyad, telefon, e-posta',
                         'Teslimat: adres, sipariş metni',
-                        'İşlem: fiş görseli, ödeme işlem referansı, kurye bilgisi',
+                        'İşlem: fiş görseli, ödeme işlem referansı, banka/IBAN bilgisi (iade/çekim için), kurye bilgisi',
                         'Tercihler: bildirim ve iletişim tercihleri',
                     ]],
                     ['h' => 'İşleme amaçları ve hukuki sebepler', 'p' => [

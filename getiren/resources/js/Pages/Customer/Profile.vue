@@ -8,6 +8,7 @@ const props = defineProps({
     address: { type: Object, default: null },
     zones: { type: Array, default: () => [] },
     notifications: { type: Object, default: () => ({ notify_email: true, notify_web: true }) },
+    bank: { type: Object, default: () => ({ iban: null, iban_holder: null }) },
 });
 
 const user = computed(() => usePage().props.auth?.user);
@@ -24,6 +25,14 @@ const addressForm = useForm({
     zone_id: props.address?.zone_id ?? props.zones[0]?.id ?? null,
 });
 const saveAddress = () => addressForm.put('/musteri/profil/adres', { preserveScroll: true });
+
+const bankForm = useForm({ iban: props.bank.iban ?? '', iban_holder: props.bank.iban_holder ?? '' });
+const saveBank = () => bankForm.put('/musteri/profil/banka', { preserveScroll: true });
+// IBAN'ı okunurluk için 4'lü grupla (blur'da)
+const formatIban = () => {
+    const raw = (bankForm.iban || '').replace(/\s+/g, '').toUpperCase();
+    bankForm.iban = raw.replace(/(.{4})/g, '$1 ').trim();
+};
 
 const passwordForm = useForm({ current_password: '', password: '', password_confirmation: '' });
 const savePassword = () =>
@@ -96,6 +105,28 @@ const saveNotifications = () => notifyForm.put('/musteri/profil/bildirimler', { 
                     <p v-if="addressForm.errors.line" class="error-text">⚠ {{ addressForm.errors.line }}</p>
                 </div>
                 <div class="row"><button class="btn btn--primary" :disabled="addressForm.processing" @click="saveAddress">{{ addressForm.processing ? 'Kaydediliyor…' : 'Adresi güncelle' }}</button></div>
+            </div>
+
+            <!-- banka bilgileri (iade / çekim) -->
+            <div class="card">
+                <div class="card__head"><div><p class="eyebrow">Banka bilgileri</p><h2>İade / çekim hesabı</h2></div></div>
+                <div class="alert alert--info" style="margin-bottom:14px">
+                    <span class="alert__ic">ℹ</span>
+                    <div>Provizyon iadeleri ve ileride bakiye çekimi için kullanılır. Bilgilerin yalnızca sana gösterilir; kart bilgisi istemeyiz.</div>
+                </div>
+                <div class="form-grid">
+                    <div class="field full" :class="{ 'field--error': bankForm.errors.iban }">
+                        <label class="label">IBAN</label>
+                        <input class="input" v-model="bankForm.iban" @blur="formatIban" placeholder="TR00 0000 0000 0000 0000 0000 00" autocomplete="off" spellcheck="false" />
+                        <p v-if="bankForm.errors.iban" class="error-text">⚠ {{ bankForm.errors.iban }}</p>
+                    </div>
+                    <div class="field full" :class="{ 'field--error': bankForm.errors.iban_holder }">
+                        <label class="label">Hesap sahibi</label>
+                        <input class="input" v-model="bankForm.iban_holder" placeholder="Ad Soyad" />
+                        <p v-if="bankForm.errors.iban_holder" class="error-text">⚠ {{ bankForm.errors.iban_holder }}</p>
+                    </div>
+                </div>
+                <div class="row"><button class="btn btn--primary" :disabled="bankForm.processing" @click="saveBank">{{ bankForm.processing ? 'Kaydediliyor…' : 'Banka bilgilerini kaydet' }}</button></div>
             </div>
 
             <!-- bildirim tercihleri -->

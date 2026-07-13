@@ -69,8 +69,9 @@ docker compose exec app php artisan migrate:fresh --seed
 
 ## Veri modeli (migration'lar)
 
-- **users** — `role` (customer/courier/admin), `phone`, `email_verified_at`, `approved_at`
-  (kurye onayı), `notify_email`, `notify_web`, `notification_events` (JSON: olay tercih haritası)
+- **users** — `role` (customer/courier/admin), `phone`, `iban`/`iban_holder` (iade/çekim),
+  `email_verified_at`, `approved_at` (kurye onayı), `notify_email`, `notify_web`,
+  `notification_events` (JSON: olay tercih haritası)
 - **wallets** + **wallet_transactions** — cüzdan + ledger (topup/hold/capture/refund/extra_charge/release)
 - **orders** + **order_items** · **addresses** · **notifications** (database kanalı)
 - **zones** — Akyaka 250 · Gökova 350 · Akçapınar 350 (+ Ataköy pasif)
@@ -79,7 +80,7 @@ docker compose exec app php artisan migrate:fresh --seed
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test    # 58 test / 196 assertion (sqlite :memory)
+docker compose exec app php artisan test    # 61 test / 206 assertion (sqlite :memory)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) her push'ta iki job koşar:
