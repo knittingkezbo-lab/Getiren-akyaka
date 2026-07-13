@@ -1,7 +1,7 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     zones: { type: Array, default: () => [] },
@@ -70,6 +70,41 @@ const pickAddress = (e) => {
 };
 
 const submit = () => form.post('/musteri/siparis');
+
+// "Ne lazım?" otomatik öneri — son segmentteki (virgülden sonraki) ürünü sözlükten tamamlar
+const sugOpen = ref(false);
+const onSugBlur = () => setTimeout(() => (sugOpen.value = false), 120);
+
+const segInfo = computed(() => {
+    const text = form.raw_text || '';
+    const start = Math.max(text.lastIndexOf(','), text.lastIndexOf('\n'), text.lastIndexOf(';')) + 1;
+    const seg = text.slice(start);
+    const m = seg.match(/^(\s*\d+\s*(?:kutu|adet|paket|kg|gr|gram|şişe|litre|lt|ml|dilim|top)?\s*)?(.*)$/i);
+    return { start, prefix: m?.[1] ?? '', query: (m?.[2] ?? '').trim() };
+});
+
+const suggestions = computed(() => {
+    const q = segInfo.value.query.toLocaleLowerCase('tr');
+    if (q.length < 2) return [];
+    return props.priceHints
+        .map((h) => h.keyword)
+        .filter((k) => {
+            const kl = k.toLocaleLowerCase('tr');
+            return kl !== q && kl.includes(q);
+        })
+        .sort((a, b) => {
+            const sa = a.toLocaleLowerCase('tr').startsWith(q) ? 0 : 1;
+            const sb = b.toLocaleLowerCase('tr').startsWith(q) ? 0 : 1;
+            return sa - sb || a.length - b.length;
+        })
+        .slice(0, 6);
+});
+
+const pickSuggestion = (kw) => {
+    const { start, prefix } = segInfo.value;
+    form.raw_text = form.raw_text.slice(0, start) + prefix + kw + ', ';
+    sugOpen.value = false;
+};
 </script>
 
 <template>
@@ -89,7 +124,12 @@ const submit = () => form.post('/musteri/siparis');
                         <span class="formsection__num">1</span>
                         <div><h3>Ne lazım?</h3><p>Aklından ne geçiyorsa yaz — market, eczane, fırın fark etmez.</p></div>
                     </div>
-                    <textarea v-model="form.raw_text" class="textarea" placeholder="Örn: 1 kutu süt, 2 ağrı kesici, ekmek"></textarea>
+                    <div class="sug-wrap">
+                        <textarea v-model="form.raw_text" class="textarea" placeholder="Örn: 1 kutu süt, 2 ağrı kesici, ekmek" @focus="sugOpen = true" @blur="onSugBlur"></textarea>
+                        <ul v-if="sugOpen && suggestions.length" class="sug">
+                            <li v-for="s in suggestions" :key="s" @mousedown.prevent="pickSuggestion(s)">＋ {{ s }}</li>
+                        </ul>
+                    </div>
                     <p v-if="form.errors.raw_text" class="error-text">⚠ {{ form.errors.raw_text }}</p>
                     <div class="quick">
                         <button v-for="w in quickItems" :key="w" type="button" class="q" @click="addQuick(w)">＋ {{ w }}</button>
@@ -188,6 +228,10 @@ const submit = () => form.post('/musteri/siparis');
 
 <style scoped>
 .banned-note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.sug-wrap { position: relative; }
+.sug { position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; list-style: none; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); z-index: 20; max-height: 220px; overflow-y: auto; }
+.sug li { padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.sug li:hover { background: var(--primary-soft); color: var(--primary-2); }
 .terms-check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; font-size: 12.5px; color: var(--muted); cursor: pointer; line-height: 1.45; }
 .terms-check input { margin-top: 2px; flex-shrink: 0; }
 .terms-check a { color: var(--primary-2); font-weight: 700; }

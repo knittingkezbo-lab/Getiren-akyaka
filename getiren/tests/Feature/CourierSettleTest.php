@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\OrderStatus;
 use App\Models\Order;
+use App\Models\PriceHint;
 use App\Models\User;
 use App\Models\Zone;
 use Database\Seeders\PriceHintSeeder;
@@ -128,6 +129,40 @@ class CourierSettleTest extends TestCase
         $this->assertEquals($balanceAfter, (float) $wallet->balance, 'Çift settle bakiyeyi değiştirdi!');
         $this->assertEquals($txCount, $wallet->transactions()->count(), 'Çift settle fazladan hareket yazdı!');
         $this->assertLedgerConsistent($wallet);
+    }
+
+    public function test_settle_learns_unknown_item_into_dictionary(): void
+    {
+        $this->assertDatabaseMissing('price_hints', ['keyword' => 'peynir']);
+
+        $customer = $this->makeCustomer(2000);
+        $zone = Zone::where('key', 'akyaka')->first();
+        $this->actingAs($customer)->post('/musteri/siparis', [
+            'raw_text' => 'peynir', 'zone_id' => $zone->id, 'terms_accepted' => true,
+        ]);
+
+        $order = Order::firstOrFail();
+        $courier = $this->makeCourier();
+        $order->update(['courier_id' => $courier->id, 'status' => OrderStatus::Shopping]);
+        $item = $order->items()->firstOrFail();
+
+        $this->actingAs($courier)->post("/kurye/is/{$order->id}/fis", [
+            'items' => [['id' => $item->id, 'actual_price' => 120]],
+        ])->assertRedirect();
+
+        // "peynir" artık sözlükte — gerçek fiş fiyatıyla
+        $this->assertDatabaseHas('price_hints', ['keyword' => 'peynir', 'category' => 'öğrenilen']);
+        $this->assertEquals(120.0, (float) PriceHint::where('keyword', 'peynir')->value('unit_price'));
+    }
+
+    public function test_settle_does_not_relearn_known_item(): void
+    {
+        [$customer, $courier, $order] = $this->shoppingOrder(); // süt/ağrı kesici/ekmek — hepsi sözlükte
+        $before = PriceHint::count();
+
+        $this->actingAs($courier)->post("/kurye/is/{$order->id}/fis", ['items' => $this->receiptFromEstimates($order)])->assertRedirect();
+
+        $this->assertEquals($before, PriceHint::count()); // yeni kelime eklenmedi
     }
 
     public function test_courier_cannot_settle_another_couriers_job(): void

@@ -12,8 +12,8 @@ fişe göre keser, fazlasını iade eder** (yetmezse ek ödeme ister). Her para 
 
 - **Sanal cüzdan + ledger** — bloke → fişe göre kes → fark iade; 6 işlem türü, tek geçiş
   noktası (`Wallet::recordTransaction`), değişmez defter (`balance == Σamount`).
-- **Sipariş akışı** — serbest-metin tahmini, kurye üstlenme → alışveriş → yolda → fiş,
-  ek-ödeme tamamlama, iptal + iade (çift-iptal kilidi ile).
+- **Sipariş akışı** — serbest-metin tahmini (yazarken öneri + gerçek fişten sözlük öğrenme),
+  kurye üstlenme → alışveriş → yolda → fiş, ek-ödeme tamamlama, iptal + iade (çift-iptal kilidi).
 - **Bildirimler** — uygulama-içi zil + e-posta + **canlı WebSocket**. Kanal (e-posta /
   uygulama) ve olay bazlı tercihler; hem müşteri hem kurye kendi tercihlerini yönetir.
 - **Canlı güncelleme** — zil ve sipariş takibi sayfa yenilenmeden güncellenir (Reverb + Echo).
@@ -78,7 +78,7 @@ docker compose exec app php artisan migrate:fresh --seed
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test    # 56 test / 190 assertion (sqlite :memory)
+docker compose exec app php artisan test    # 58 test / 196 assertion (sqlite :memory)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) her push'ta iki job koşar:

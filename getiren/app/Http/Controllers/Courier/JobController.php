@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\PriceHint;
 use App\Notifications\OrderNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -174,6 +175,9 @@ class JobController extends Controller
 
         $order->refresh();
 
+        // Gerçek fişten öğren: sözlükte olmayan kalemleri fiyatıyla price_hints'e ekle
+        $this->learnUnknownItems($order);
+
         if ($order->status === OrderStatus::Delivered) {
             $order->customer->notify(new OrderNotification($order, 'Siparişin teslim edildi', "#{$order->code} teslim edildi. Fazla blokaj cüzdanına iade edildi.", event: 'delivered'));
             $msg = $order->code.' teslim edildi · '.number_format((float) $order->refund_amount, 0, ',', '.').' TL iade.';
@@ -183,6 +187,40 @@ class JobController extends Controller
         }
 
         return redirect()->route('courier.dashboard')->with('success', $msg);
+    }
+
+    /**
+     * Gerçek fişten sözlük öğrenme: bilinmeyen kalemi (miktar eki temizlenmiş) birim
+     * fiyatıyla price_hints'e ekler; sonraki siparişlerde öneri/tahmin gelişir.
+     */
+    private function learnUnknownItems(Order $order): void
+    {
+        $known = PriceHint::pluck('keyword')->map(fn ($k) => mb_strtolower($k, 'UTF-8'))->all();
+
+        foreach ($order->items()->get() as $item) {
+            if ($item->actual_price === null || (int) $item->qty < 1) {
+                continue;
+            }
+
+            // Baştaki miktar/birim ekini at: "2 kutu peynir" → "peynir"
+            $keyword = trim(preg_replace(
+                '/^\d+\s*(kutu|adet|paket|kg|gr|gram|şişe|litre|lt|ml|dilim|top)?\s*/iu',
+                '',
+                mb_strtolower($item->name, 'UTF-8'),
+            ));
+
+            if (mb_strlen($keyword) < 2 || mb_strlen($keyword) > 30 || is_numeric($keyword) || in_array($keyword, $known, true)) {
+                continue;
+            }
+
+            PriceHint::create([
+                'keyword' => $keyword,
+                'category' => 'öğrenilen',
+                'unit_price' => round((float) $item->actual_price / max(1, (int) $item->qty), 2),
+                'is_active' => true,
+            ]);
+            $known[] = $keyword;
+        }
     }
 
     private function card(Order $o): array
