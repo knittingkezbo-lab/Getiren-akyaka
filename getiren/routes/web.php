@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/profil', [ProfileController::class, 'updateInfo'])->name('profile.info');
         Route::put('/profil/adres', [ProfileController::class, 'updateAddress'])->name('profile.address');
         Route::put('/profil/sifre', [ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::put('/profil/bildirimler', [ProfileController::class, 'updateNotifications'])->name('profile.notifications');
     });
 
     // Kurye alanı

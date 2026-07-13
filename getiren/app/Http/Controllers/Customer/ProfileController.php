@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Zone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +13,9 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    /** Müşterinin profilden aç/kapat yapabildiği olay anahtarları. */
+    private const CUSTOMER_EVENTS = ['assigned', 'on_the_way', 'delivered', 'extra'];
+
     public function edit(Request $request): Response
     {
         $user = $request->user()->loadMissing('addresses');
@@ -29,7 +33,26 @@ class ProfileController extends Controller
                 'zone_id' => $address->zone_id,
             ] : null,
             'zones' => Zone::where('is_active', true)->orderBy('sort_order')->get(['id', 'name']),
+            'notifications' => [
+                'notify_email' => (bool) $user->notify_email,
+                'notify_web' => (bool) $user->notify_web,
+                'events' => $this->eventPrefs($user),
+            ],
         ]);
+    }
+
+    /**
+     * Kullanıcının olay tercihlerini bilinen anahtarlar üzerinden normalize eder (eksik = açık).
+     *
+     * @return array<string, bool>
+     */
+    private function eventPrefs(User $user): array
+    {
+        $prefs = $user->notification_events ?? [];
+
+        return collect(self::CUSTOMER_EVENTS)
+            ->mapWithKeys(fn (string $key) => [$key => (bool) ($prefs[$key] ?? true)])
+            ->all();
     }
 
     public function updateInfo(Request $request): RedirectResponse
@@ -71,5 +94,29 @@ class ProfileController extends Controller
         $request->user()->update(['password' => $data['password']]); // 'hashed' cast
 
         return back()->with('success', 'Şifren güncellendi.');
+    }
+
+    public function updateNotifications(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'notify_email' => ['required', 'boolean'],
+            'notify_web' => ['required', 'boolean'],
+            'events' => ['array'],
+            'events.*' => ['boolean'],
+        ]);
+
+        // Yalnızca bilinen olay anahtarlarını sakla (eksik = açık)
+        $provided = $data['events'] ?? [];
+        $events = collect(self::CUSTOMER_EVENTS)
+            ->mapWithKeys(fn (string $key) => [$key => (bool) ($provided[$key] ?? true)])
+            ->all();
+
+        $request->user()->update([
+            'notify_email' => $data['notify_email'],
+            'notify_web' => $data['notify_web'],
+            'notification_events' => $events,
+        ]);
+
+        return back()->with('success', 'Bildirim tercihlerin güncellendi.');
     }
 }

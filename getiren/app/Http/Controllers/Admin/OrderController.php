@@ -66,7 +66,8 @@ class OrderController extends Controller
             'status' => $order->status === OrderStatus::Reserved ? OrderStatus::Assigned : $order->status,
         ]);
 
-        $order->customer->notify(new OrderNotification($order, 'Kuryen atandı', "#{$order->code} siparişine {$courier->name} atandı."));
+        $order->customer->notify(new OrderNotification($order, 'Kuryen atandı', "#{$order->code} siparişine {$courier->name} atandı.", event: 'assigned'));
+        $courier->notify(new OrderNotification($order, 'Yeni iş atandı', "#{$order->code} işi sana atandı — {$order->zone?->name}.", event: 'assigned_courier'));
 
         return back()->with('success', $order->code.' → '.$courier->name.' atandı.');
     }

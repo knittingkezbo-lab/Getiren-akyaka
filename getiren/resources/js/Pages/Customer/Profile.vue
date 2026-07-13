@@ -7,6 +7,7 @@ const props = defineProps({
     profile: { type: Object, required: true },
     address: { type: Object, default: null },
     zones: { type: Array, default: () => [] },
+    notifications: { type: Object, default: () => ({ notify_email: true, notify_web: true }) },
 });
 
 const user = computed(() => usePage().props.auth?.user);
@@ -27,6 +28,20 @@ const saveAddress = () => addressForm.put('/musteri/profil/adres', { preserveScr
 const passwordForm = useForm({ current_password: '', password: '', password_confirmation: '' });
 const savePassword = () =>
     passwordForm.put('/musteri/profil/sifre', { preserveScroll: true, onSuccess: () => passwordForm.reset() });
+
+const eventList = [
+    { key: 'assigned', label: 'Kurye atandı', hint: 'Siparişini bir kurye üstlendiğinde' },
+    { key: 'on_the_way', label: 'Sipariş yolda', hint: 'Kurye yola çıktığında' },
+    { key: 'delivered', label: 'Teslim edildi', hint: 'Sipariş tamamlandığında' },
+    { key: 'extra', label: 'Ek ödeme gerekli', hint: 'Fiş bloke tutarını aştığında' },
+];
+
+const notifyForm = useForm({
+    notify_email: props.notifications.notify_email,
+    notify_web: props.notifications.notify_web,
+    events: { ...props.notifications.events },
+});
+const saveNotifications = () => notifyForm.put('/musteri/profil/bildirimler', { preserveScroll: true });
 </script>
 
 <template>
@@ -83,6 +98,45 @@ const savePassword = () =>
                 <div class="row"><button class="btn btn--primary" :disabled="addressForm.processing" @click="saveAddress">{{ addressForm.processing ? 'Kaydediliyor…' : 'Adresi güncelle' }}</button></div>
             </div>
 
+            <!-- bildirim tercihleri -->
+            <div class="card">
+                <div class="card__head"><div><p class="eyebrow">Bildirimler</p><h2>Bildirim tercihleri</h2></div></div>
+                <div class="pref">
+                    <div class="pref__text">
+                        <b>E-posta bildirimleri</b>
+                        <small class="muted">Sipariş durumu değişince e-posta al — kurye atandı, yolda, teslim edildi, ek ödeme.</small>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" v-model="notifyForm.notify_email" />
+                        <span class="switch__slider"></span>
+                    </label>
+                </div>
+                <div class="pref">
+                    <div class="pref__text">
+                        <b>Uygulama içi bildirimler</b>
+                        <small class="muted">Zil simgesinde anlık bildirim göster.</small>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" v-model="notifyForm.notify_web" />
+                        <span class="switch__slider"></span>
+                    </label>
+                </div>
+
+                <div class="events">
+                    <p class="events__title">Hangi durumlarda haber verelim?</p>
+                    <p class="muted" style="font-size:13px; margin:0 0 4px">Kapattığın olaylar için ne e-posta ne de zil bildirimi gönderilir.</p>
+                    <label v-for="ev in eventList" :key="ev.key" class="event">
+                        <span class="event__text"><b>{{ ev.label }}</b><small class="muted">{{ ev.hint }}</small></span>
+                        <span class="switch">
+                            <input type="checkbox" v-model="notifyForm.events[ev.key]" />
+                            <span class="switch__slider"></span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="row"><button class="btn btn--primary" :disabled="notifyForm.processing" @click="saveNotifications">{{ notifyForm.processing ? 'Kaydediliyor…' : 'Tercihleri kaydet' }}</button></div>
+            </div>
+
             <!-- güvenlik -->
             <div class="card">
                 <div class="card__head"><div><p class="eyebrow">Güvenlik</p><h2>Şifre değiştir</h2></div></div>
@@ -104,3 +158,25 @@ const savePassword = () =>
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.pref { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 0; border-bottom: 1px solid var(--line); }
+.pref:last-of-type { border-bottom: 0; }
+.pref__text b { display: block; font-size: 15px; }
+.pref__text small { display: block; margin-top: 2px; max-width: 540px; }
+
+.switch { position: relative; display: inline-block; width: 48px; height: 28px; flex-shrink: 0; }
+.switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch__slider { position: absolute; inset: 0; cursor: pointer; background: var(--line); border-radius: 999px; transition: background 0.2s; }
+.switch__slider::before { content: ''; position: absolute; height: 22px; width: 22px; left: 3px; top: 3px; background: #fff; border-radius: 50%; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: transform 0.2s; }
+.switch input:checked + .switch__slider { background: var(--primary); }
+.switch input:checked + .switch__slider::before { transform: translateX(20px); }
+.switch input:focus-visible + .switch__slider { outline: 2px solid var(--primary-2); outline-offset: 2px; }
+
+.events { margin-top: 4px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.events__title { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.event { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; cursor: pointer; }
+.event + .event { border-top: 1px solid var(--line); }
+.event__text b { display: block; font-size: 14px; font-weight: 600; }
+.event__text small { display: block; font-size: 12.5px; margin-top: 1px; }
+</style>

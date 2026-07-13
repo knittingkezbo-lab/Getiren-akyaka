@@ -4,15 +4,20 @@ namespace App\Http\Controllers\Customer;
 
 use App\Enums\OrderStatus;
 use App\Enums\TransactionType;
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\PriceHint;
 use App\Models\Setting;
+use App\Models\User;
 use App\Models\Zone;
+use App\Notifications\OrderNotification;
 use App\Services\OrderEstimator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -121,6 +126,19 @@ class OrderController extends Controller
             return $order;
         });
 
+        // Kuryelere yeni iş fırsatı (yalnızca web zil — her siparişte e-posta spam olmasın)
+        $couriers = User::where('role', UserRole::Courier)->get();
+        if ($couriers->isNotEmpty()) {
+            Notification::send($couriers, new OrderNotification(
+                $order,
+                'Yeni iş fırsatı',
+                $zone->name.' · '.Str::limit($data['raw_text'], 30).' · '.number_format($est['reserved_amount'], 0, ',', '.').' TL',
+                ['database'],
+                '/kurye',
+                'new_job',
+            ));
+        }
+
         return redirect()->route('customer.orders.show', $order)->with(
             'success',
             $order->code.' oluşturuldu · '.number_format($est['reserved_amount'], 0, ',', '.').' TL bloke edildi.',
@@ -171,18 +189,34 @@ class OrderController extends Controller
         abort_unless(in_array($order->status, [OrderStatus::Reserved, OrderStatus::Assigned], true), 422);
 
         $user = $request->user()->loadMissing('wallet');
+        $courier = $order->courier; // iptal öncesi atanmış kurye (varsa haber verilecek)
 
         DB::transaction(function () use ($user, $order) {
+            // Yarış koşuluna karşı satırı kilitle ve durumu yeniden doğrula:
+            // eşzamanlı çift iptal → çift iade (ledger bozulması) önlenir.
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+            abort_unless(in_array($locked->status, [OrderStatus::Reserved, OrderStatus::Assigned], true), 422);
+
             // Bloke çöz: reserved'daki tutar tekrar kullanılabilir bakiyeye döner (tek ledger satırı)
             $user->wallet->recordTransaction(
                 TransactionType::Release,
-                (float) $order->reserved_amount,
-                -(float) $order->reserved_amount,
-                $order,
+                (float) $locked->reserved_amount,
+                -(float) $locked->reserved_amount,
+                $locked,
                 'Sipariş iptal · bloke çözüldü',
             );
-            $order->update(['status' => OrderStatus::Cancelled]);
+            $locked->update(['status' => OrderStatus::Cancelled]);
         });
+
+        // Sipariş atanmış bir kuryedeyse iptalden haberdar et
+        if ($courier) {
+            $courier->notify(new OrderNotification(
+                $order,
+                'Sipariş iptal edildi',
+                "#{$order->code} müşteri tarafından iptal edildi.",
+                event: 'cancelled',
+            ));
+        }
 
         return redirect()->route('customer.dashboard')->with(
             'success',
