@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboard;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\ProfileController;
@@ -30,11 +31,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
     Route::post('/bildirimler/oku', [NotificationController::class, 'markAllRead'])->name('notifications.read');
 
+    // E-posta doğrulama (özellik AUTH_EMAIL_VERIFICATION ile açılır)
+    Route::get('/email/verify', [VerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/dogrulama-gonder', [VerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')->name('verification.send');
+
     // Kök: kullanıcıyı rolüne göre açılış sayfasına yönlendirir
     Route::get('/', fn () => redirect()->route(auth()->user()->role->homeRoute()))->name('home');
 
     // Müşteri alanı
-    Route::middleware('role:customer')->prefix('musteri')->name('customer.')->group(function () {
+    Route::middleware(['role:customer', 'verified'])->prefix('musteri')->name('customer.')->group(function () {
         Route::get('/', [CustomerDashboard::class, 'index'])->name('dashboard');
 
         Route::get('/siparis/yeni', [OrderController::class, 'create'])->name('orders.create');
@@ -57,7 +65,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Kurye alanı
-    Route::middleware('role:courier')->prefix('kurye')->name('courier.')->group(function () {
+    Route::middleware(['role:courier', 'verified'])->prefix('kurye')->name('courier.')->group(function () {
         Route::get('/', [JobController::class, 'index'])->name('dashboard');
 
         Route::get('/tercihler', [CourierSettings::class, 'edit'])->name('settings');
@@ -72,7 +80,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Yönetici alanı
-    Route::middleware('role:admin')->prefix('yonetici')->name('admin.')->group(function () {
+    Route::middleware(['role:admin', 'verified'])->prefix('yonetici')->name('admin.')->group(function () {
         Route::get('/', [AdminDashboard::class, 'index'])->name('dashboard');
 
         Route::get('/siparisler', [AdminOrders::class, 'index'])->name('orders');

@@ -28,6 +28,7 @@ class RegisterController extends Controller
         ]);
 
         $role = UserRole::from($data['role']);
+        $requireVerification = (bool) config('features.email_verification');
 
         $user = User::create([
             'name' => trim($data['first_name'].' '.$data['last_name']),
@@ -35,8 +36,12 @@ class RegisterController extends Controller
             'phone' => $data['phone'] ?? null,
             'role' => $role,
             'password' => $data['password'], // 'hashed' cast otomatik hash'ler
-            'email_verified_at' => now(),
         ]);
+
+        // email_verified_at Fillable değil (güvenlik) → doğrulama kapalıysa açıkça işaretle
+        if (! $requireVerification) {
+            $user->markEmailAsVerified();
+        }
 
         // Müşteriye cüzdan aç
         if ($role === UserRole::Customer) {
@@ -45,6 +50,13 @@ class RegisterController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+
+        // Doğrulama açıksa: doğrulama linkini gönder + "e-postanı doğrula" ekranına yönlendir
+        if ($requireVerification) {
+            $user->sendEmailVerificationNotification();
+
+            return redirect()->route('verification.notice');
+        }
 
         return redirect()->route($user->role->homeRoute());
     }

@@ -17,6 +17,8 @@ fişe göre keser, fazlasını iade eder** (yetmezse ek ödeme ister). Her para 
 - **Bildirimler** — uygulama-içi zil + e-posta + **canlı WebSocket**. Kanal (e-posta /
   uygulama) ve olay bazlı tercihler; hem müşteri hem kurye kendi tercihlerini yönetir.
 - **Canlı güncelleme** — zil ve sipariş takibi sayfa yenilenmeden güncellenir (Reverb + Echo).
+- **Kayıt güvenliği** — e-posta doğrulama (toggle'lı `MustVerifyEmail`): açıkken kayıt imzalı
+  doğrulama linki ister, kapalıyken (demo) anında doğrulanır.
 
 ## Kurulum (Docker)
 
@@ -49,6 +51,8 @@ docker compose exec app php artisan migrate:fresh --seed
 ## Mimari notları
 
 - **Auth** — session (`Auth::attempt`), `EnsureUserHasRole` (`role:` alias), rol → açılış rotası.
+  E-posta doğrulama `AUTH_EMAIL_VERIFICATION` ile açılır (`MustVerifyEmail` + imzalı rota +
+  `verified` middleware); kapalıyken kayıt anında doğrulanır. Proxy/tünel arkası için `trustProxies`.
 - **Ledger** — `Wallet::recordTransaction(type, amount, reservedDelta, order, note, meta)`
   tek giriş noktası; bakiye/bloke önbelleğini günceller, değişmez satır yazar.
 - **Bildirim** — `OrderNotification.via()` istenen kanalları alıcının **olay** + **kanal**
@@ -60,8 +64,8 @@ docker compose exec app php artisan migrate:fresh --seed
 
 ## Veri modeli (migration'lar)
 
-- **users** — `role` (customer/courier/admin), `phone`, `notify_email`, `notify_web`,
-  `notification_events` (JSON: olay bazlı tercih haritası)
+- **users** — `role` (customer/courier/admin), `phone`, `email_verified_at`, `notify_email`,
+  `notify_web`, `notification_events` (JSON: olay bazlı tercih haritası)
 - **wallets** + **wallet_transactions** — cüzdan + ledger (topup/hold/capture/refund/extra_charge/release)
 - **orders** + **order_items** · **addresses** · **notifications** (database kanalı)
 - **zones** — Akyaka 250 · Gökova 350 · Akçapınar 350 (+ Ataköy pasif)
@@ -70,7 +74,7 @@ docker compose exec app php artisan migrate:fresh --seed
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test    # 45 test / 161 assertion (sqlite :memory)
+docker compose exec app php artisan test    # 49 test / 173 assertion (sqlite :memory)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) her push'ta iki job koşar:
@@ -85,6 +89,21 @@ docker compose logs -f app                                  # loglar (veya: reve
 docker compose down                                         # durdur (veri kalır)
 docker compose down -v                                      # + veritabanını sil
 ```
+
+## Paylaşım (uzaktan demo)
+
+Geliştirmede asset'leri Vite (`localhost:5173`) servis eder — uzaktan biri erişecekse önce
+production build alıp Vite'ı durdur, sonra tünelle:
+
+```bash
+docker compose run --rm node npm run build      # asset'leri derle
+docker compose stop node                         # Vite'ı durdur → build modu
+cloudflared tunnel --url http://localhost:8080   # geçici public URL (trycloudflare.com)
+```
+
+`APP_DEBUG=false` yap (herkese açıkken); Cloudflare https'i için `trustProxies` zaten ekli.
+Geliştirmeye dönmek: `docker compose start node`. WebSocket canlı güncelleme tek tünelde
+ek ayar (nginx → Reverb proxy) ister.
 
 ## Sırada
 
