@@ -35,6 +35,18 @@ class BankInfoTest extends TestCase
         $this->assertNull($customer->fresh()->iban);
     }
 
+    public function test_courier_can_save_iban(): void
+    {
+        $courier = $this->makeCourier();
+
+        $this->actingAs($courier)->put('/kurye/tercihler/banka', [
+            'iban' => 'TR98 7654 3210 9876 5432 1098 76',
+            'iban_holder' => 'Mert Kaya',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertEquals('TR987654321098765432109876', $courier->fresh()->iban);
+    }
+
     public function test_empty_iban_clears_bank_info(): void
     {
         $customer = $this->makeCustomer(0);

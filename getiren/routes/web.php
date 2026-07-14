@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/tercihler', [CourierSettings::class, 'updateInfo'])->name('settings.info');
         Route::put('/tercihler/sifre', [CourierSettings::class, 'updatePassword'])->name('settings.password');
         Route::put('/tercihler/bildirimler', [CourierSettings::class, 'updateNotifications'])->name('settings.notifications');
+        Route::put('/tercihler/banka', [CourierSettings::class, 'updateBank'])->name('settings.bank');
 
         Route::get('/is/{order}', [JobController::class, 'show'])->name('jobs.show');
         Route::post('/is/{order}/ustlen', [JobController::class, 'accept'])->name('jobs.accept');

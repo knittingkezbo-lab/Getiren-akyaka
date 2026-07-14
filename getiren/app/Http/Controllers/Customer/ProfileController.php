@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Http\Controllers\Concerns\ManagesBankInfo;
 use App\Http\Controllers\Controller;
 use App\Models\Zone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    use ManagesBankInfo;
+
     /** Müşterinin profilden aç/kapat yapabildiği olay anahtarları. */
     private const CUSTOMER_EVENTS = ['assigned', 'on_the_way', 'delivered', 'extra'];
 
@@ -112,26 +114,7 @@ class ProfileController extends Controller
 
     public function updateBank(Request $request): RedirectResponse
     {
-        $data = $request->validate([
-            'iban' => ['nullable', 'string', 'max:40'],
-            'iban_holder' => ['nullable', 'string', 'max:150'],
-        ]);
-
-        // Boşlukları ayıkla + büyük harf; boşsa null
-        $iban = filled($data['iban'] ?? null)
-            ? strtoupper(preg_replace('/\s+/', '', $data['iban']))
-            : null;
-
-        if ($iban !== null && ! preg_match('/^TR\d{24}$/', $iban)) {
-            throw ValidationException::withMessages([
-                'iban' => 'Geçerli bir TR IBAN girin (TR + 24 rakam).',
-            ]);
-        }
-
-        $request->user()->update([
-            'iban' => $iban,
-            'iban_holder' => $iban ? ($data['iban_holder'] ?? null) : null,
-        ]);
+        $this->saveBankInfo($request);
 
         return back()->with('success', 'Banka bilgilerin güncellendi.');
     }

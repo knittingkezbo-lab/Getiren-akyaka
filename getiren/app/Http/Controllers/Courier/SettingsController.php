@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Courier;
 
+use App\Http\Controllers\Concerns\ManagesBankInfo;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,6 +12,8 @@ use Inertia\Response;
 
 class SettingsController extends Controller
 {
+    use ManagesBankInfo;
+
     /** Kuryenin profilden aç/kapat yapabildiği bildirim olayları. */
     private const COURIER_EVENTS = ['new_job', 'assigned_courier', 'cancelled'];
 
@@ -28,6 +31,10 @@ class SettingsController extends Controller
                 'notify_email' => (bool) $user->notify_email,
                 'notify_web' => (bool) $user->notify_web,
                 'events' => $user->eventPrefs(self::COURIER_EVENTS),
+            ],
+            'bank' => [
+                'iban' => $user->iban,
+                'iban_holder' => $user->iban_holder,
             ],
         ]);
     }
@@ -79,5 +86,12 @@ class SettingsController extends Controller
         ]);
 
         return back()->with('success', 'Bildirim tercihlerin güncellendi.');
+    }
+
+    public function updateBank(Request $request): RedirectResponse
+    {
+        $this->saveBankInfo($request);
+
+        return back()->with('success', 'Banka bilgilerin güncellendi.');
     }
 }
