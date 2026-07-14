@@ -37,7 +37,7 @@ docker compose exec app php artisan migrate:fresh --seed
 | Servis | Adres |
 |---|---|
 | Uygulama (nginx → php-fpm) | http://localhost:8080 |
-| phpMyAdmin | http://localhost:8081  (sunucu `db`, `getiren` / `secret`) |
+| phpMyAdmin | http://localhost:8082  (sunucu `db`, `getiren` / `secret`) |
 | Mailpit (e-posta yakalayıcı) | http://localhost:8025 |
 | Vite dev (HMR) | http://localhost:5173 |
 | Reverb (WebSocket) | ws://localhost:8085 |
