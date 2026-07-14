@@ -11,6 +11,7 @@ use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Courier\JobController;
 use App\Http\Controllers\Courier\SettingsController as CourierSettings;
+use App\Http\Controllers\Admin\AuditLogController as AdminAuditLog;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\OrderController as AdminOrders;
 use App\Http\Controllers\Admin\CourierController as AdminCouriers;
@@ -105,5 +106,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/ayarlar', [AdminSettings::class, 'index'])->name('settings');
         Route::post('/ayarlar', [AdminSettings::class, 'update'])->name('settings.update');
+
+        Route::get('/denetim', [AdminAuditLog::class, 'index'])->name('audit');
     });
 });

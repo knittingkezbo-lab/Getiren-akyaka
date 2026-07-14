@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AuditAction;
 use App\Enums\OrderStatus;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Zone;
 use App\Notifications\OrderNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -60,11 +63,22 @@ class OrderController extends Controller
         ]);
 
         $courier = User::where('role', UserRole::Courier)->findOrFail($data['courier_id']);
+        $previous = $order->courier?->name;
 
-        $order->update([
-            'courier_id' => $courier->id,
-            'status' => $order->status === OrderStatus::Reserved ? OrderStatus::Assigned : $order->status,
-        ]);
+        DB::transaction(function () use ($order, $courier, $previous) {
+            $order->update([
+                'courier_id' => $courier->id,
+                'status' => $order->status === OrderStatus::Reserved ? OrderStatus::Assigned : $order->status,
+            ]);
+
+            AuditLog::record(
+                AuditAction::OrderAssigned,
+                "#{$order->code} siparişi {$courier->name} kuryesine atandı.",
+                $order,
+                "#{$order->code}",
+                array_filter(['kurye' => $courier->name, 'önceki kurye' => $previous]),
+            );
+        });
 
         $order->customer->notify(new OrderNotification($order, 'Kuryen atandı', "#{$order->code} siparişine {$courier->name} atandı.", event: 'assigned'));
         $courier->notify(new OrderNotification($order, 'Yeni iş atandı', "#{$order->code} işi sana atandı — {$order->zone?->name}.", event: 'assigned_courier'));

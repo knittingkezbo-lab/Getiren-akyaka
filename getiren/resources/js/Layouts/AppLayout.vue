@@ -30,6 +30,7 @@ const navByRole = {
         { label: 'Panel', icon: '📊', href: '/yonetici' },
         { label: 'Siparişler', icon: '🧾', href: '/yonetici/siparisler' },
         { label: 'Kuryeler', icon: '🛵', href: '/yonetici/kuryeler' },
+        { label: 'Denetim', icon: '📜', href: '/yonetici/denetim' },
         { label: 'Ayarlar', icon: '⚙️', href: '/yonetici/ayarlar' },
     ],
 };

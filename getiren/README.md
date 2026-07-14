@@ -22,6 +22,9 @@ fişe göre keser, fazlasını iade eder** (yetmezse ek ödeme ister). Her para 
   kurye kaydı "onay bekliyor" başlar, admin onaylayana kadar iş alamaz.
 - **Hukuki sertleştirme** — `/hukuki/*` sayfaları (taslak), sipariş onay checkbox'ı +
   `terms_version` kaydı, yasaklı ürün uyarısı, "ürün satıcısı değil" konumlandırması.
+- **Denetim kaydı** — `/yonetici/denetim`: kurye onay/red, sipariş atama ve ayar değişiklikleri
+  kim–ne–ne zaman–hangi IP olarak yazılır; ayarlarda **eski → yeni** farkı tutulur. Kayıt
+  değiştirilemez/silinemez (model seviyesinde), hedef silinse bile adı kopyalandığı için okunur kalır.
 
 ## Kurulum (Docker)
 
@@ -76,6 +79,8 @@ docker compose exec app php artisan migrate:fresh --seed
 - **orders** + **order_items** · **addresses** · **notifications** (database kanalı)
 - **zones** — Akyaka 250 · Gökova 350 · Akçapınar 350 (+ Ataköy pasif)
 - **price_hints** — serbest-metin tahmin sözlüğü · **settings** — %güvenlik payı vb.
+- **audit_logs** — yönetici eylemleri (append-only). Aktör/hedef adları satır silinse de
+  okunur kalsın diye kopyalanır; `meta` JSON'unda ayarların eski→yeni farkı durur.
 
 ## Test & CI
 
