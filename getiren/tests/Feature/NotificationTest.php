@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AuthorizationStatus;
 use App\Enums\OrderStatus;
 use App\Enums\UserRole;
 use App\Models\Order;
@@ -27,7 +28,7 @@ class NotificationTest extends TestCase
 
     private function reservedOrder(): array
     {
-        $customer = $this->makeCustomer(1000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
         $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
 
@@ -77,7 +78,7 @@ class NotificationTest extends TestCase
     public function test_new_order_broadcasts_to_couriers(): void
     {
         $courier = $this->makeCourier();
-        $customer = $this->makeCustomer(1000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
 
         $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
@@ -91,7 +92,7 @@ class NotificationTest extends TestCase
 
     public function test_customer_can_update_notification_preferences(): void
     {
-        $customer = $this->makeCustomer(100);
+        $customer = $this->makeCustomer();
 
         $this->actingAs($customer)
             ->put('/musteri/profil/bildirimler', ['notify_email' => false, 'notify_web' => true])
@@ -144,20 +145,19 @@ class NotificationTest extends TestCase
         $this->assertEquals('Sipariş iptal edildi', $note->data['title']);
     }
 
-    public function test_double_cancel_is_rejected_without_double_refund(): void
+    public function test_double_cancel_is_rejected_without_voiding_twice(): void
     {
         [$customer, $order] = $this->reservedOrder();
-        $wallet = $customer->wallet;
 
         $this->actingAs($customer)->post("/musteri/siparisler/{$order->id}/iptal")->assertRedirect();
         // İkinci iptal reddedilir (durum artık Cancelled)
         $this->actingAs($customer)->post("/musteri/siparisler/{$order->id}/iptal")->assertStatus(422);
 
-        $wallet->refresh();
-        $this->assertEquals(0.0, (float) $wallet->reserved);
-        $this->assertEquals(1000.0, (float) $wallet->balance);
-        $this->assertEquals(1, $wallet->transactions()->where('type', 'release')->count());
-        $this->assertLedgerConsistent($wallet);
+        $order->refresh();
+        $auth = $order->authorizations()->sole(); // tek provizyon, tek kez çözülmüş
+        $this->assertEquals(AuthorizationStatus::Voided, $auth->status);
+        $this->assertEquals(0.0, (float) $auth->captured_amount);
+        $this->assertAuthorizationsConsistent($order);
     }
 
     public function test_event_preference_suppresses_both_channels(): void
@@ -174,7 +174,7 @@ class NotificationTest extends TestCase
 
     public function test_update_notifications_persists_event_map(): void
     {
-        $customer = $this->makeCustomer(100);
+        $customer = $this->makeCustomer();
 
         $this->actingAs($customer)->put('/musteri/profil/bildirimler', [
             'notify_email' => true,
@@ -208,7 +208,7 @@ class NotificationTest extends TestCase
     {
         $courier = $this->makeCourier();
         $courier->update(['notification_events' => ['new_job' => false]]);
-        $customer = $this->makeCustomer(1000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
 
         $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
@@ -219,7 +219,7 @@ class NotificationTest extends TestCase
 
     public function test_customer_cannot_access_courier_settings(): void
     {
-        $customer = $this->makeCustomer(100);
+        $customer = $this->makeCustomer();
 
         $this->actingAs($customer)->get('/kurye/tercihler')->assertForbidden();
     }

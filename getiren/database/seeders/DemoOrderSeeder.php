@@ -3,16 +3,15 @@
 namespace Database\Seeders;
 
 use App\Enums\OrderStatus;
-use App\Enums\TransactionType;
 use App\Models\Order;
 use App\Models\User;
-use App\Models\Wallet;
 use App\Models\Zone;
+use App\Payments\PaymentGateway;
 use Illuminate\Database\Seeder;
 
 class DemoOrderSeeder extends Seeder
 {
-    public function run(): void
+    public function run(PaymentGateway $gateway): void
     {
         // Idempotent: demo siparişleri zaten varsa çık
         if (Order::where('code', 'A24-116')->exists()) {
@@ -29,7 +28,7 @@ class DemoOrderSeeder extends Seeder
         $gokova = Zone::where('key', 'gokova')->first();
         $akcapinar = Zone::where('key', 'akcapinar')->first();
 
-        // ---- Gencer #1: teslim edildi (tam döngü: bloke → tahsil → iade) ----
+        // ---- Gencer #1: teslim edildi (tam döngü: provizyon → fişe göre tahsil → kalan çözüldü) ----
         $o1 = Order::create([
             'code' => 'A24-116', 'customer_id' => $gencer->id, 'courier_id' => $mert->id, 'zone_id' => $akyaka->id,
             'raw_text' => 'zeytinyağı, 2 ekmek, süt', 'address_label' => 'Ev', 'address_text' => 'Şirinyer Mah. Deniz Sk.',
@@ -41,17 +40,14 @@ class DemoOrderSeeder extends Seeder
             ['name' => 'Ekmek', 'qty' => 2, 'estimated_price' => 30, 'actual_price' => 32],
             ['name' => 'Süt', 'qty' => 1, 'estimated_price' => 50, 'actual_price' => 45],
         ]);
-        $gw = $gencer->wallet;
-        $gw->recordTransaction(TransactionType::Hold, -745, 745, $o1, 'Sipariş bloke edildi');
-        // fiş: ürün 372 + hizmet 250 = 622 tahsil, 123 iade
-        $gw->recordTransaction(TransactionType::Capture, 0, -622, $o1, 'Fişe göre tahsil', ['receipt' => 372, 'service_fee' => 250]);
-        $gw->recordTransaction(TransactionType::Refund, 123, -123, $o1, 'Fazla blokaj iadesi');
+        // Fiş: ürün 372 + hizmet 250 = 622 tahsil; provizyonun kalan 123'ü sağlayıcıda çözülür
+        $gateway->capture($gateway->authorize($o1, 745, 'Sipariş provizyonu'), 622);
         $o1->update([
             'status' => OrderStatus::Delivered, 'actual_receipt_amount' => 372, 'captured_amount' => 622,
             'refund_amount' => 123, 'reserved_at' => now()->subDays(2), 'delivered_at' => now()->subDays(2),
         ]);
 
-        // ---- Gencer #2: aktif (alışverişte) ----
+        // ---- Gencer #2: aktif (alışverişte) — provizyon açık ----
         $o2 = Order::create([
             'code' => 'A24-118', 'customer_id' => $gencer->id, 'courier_id' => $mert->id, 'zone_id' => $akyaka->id,
             'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek', 'address_label' => 'Ev', 'address_text' => 'Şirinyer Mah. Deniz Sk.',
@@ -64,9 +60,9 @@ class DemoOrderSeeder extends Seeder
             ['name' => 'Ağrı kesici', 'qty' => 2, 'estimated_price' => 300],
             ['name' => 'Ekmek', 'qty' => 1, 'estimated_price' => 15],
         ]);
-        $gw->recordTransaction(TransactionType::Hold, -684, 684, $o2, 'Sipariş bloke edildi');
+        $gateway->authorize($o2, 684, 'Sipariş provizyonu');
 
-        // ---- Gencer #3: fiş blokeyi aştı (ek ödeme bekliyor) ----
+        // ---- Gencer #3: fiş provizyonu aştı (ek ödeme bekliyor) — provizyon hâlâ açık ----
         $o3 = Order::create([
             'code' => 'A24-115', 'customer_id' => $gencer->id, 'courier_id' => $deniz->id, 'zone_id' => $akyaka->id,
             'raw_text' => 'zeytinyağı, 2 ekmek', 'address_label' => 'Ev', 'address_text' => 'Şirinyer Mah. Deniz Sk.',
@@ -75,7 +71,11 @@ class DemoOrderSeeder extends Seeder
             'actual_receipt_amount' => 310, 'extra_required_amount' => 80,
             'reserved_at' => now()->subDay(),
         ]);
-        $gw->recordTransaction(TransactionType::Hold, -480, 480, $o3, 'Sipariş bloke edildi');
+        $o3->items()->createMany([
+            ['name' => 'Zeytinyağı', 'qty' => 1, 'estimated_price' => 170, 'actual_price' => 250],
+            ['name' => 'Ekmek', 'qty' => 2, 'estimated_price' => 30, 'actual_price' => 60],
+        ]);
+        $gateway->authorize($o3, 480, 'Sipariş provizyonu');
 
         // ---- Selin: yolda ----
         $so = Order::create([
@@ -88,15 +88,20 @@ class DemoOrderSeeder extends Seeder
             ['name' => 'Kahve', 'qty' => 1, 'estimated_price' => 120],
             ['name' => 'Su', 'qty' => 3, 'estimated_price' => 105],
         ]);
-        $selin->wallet->recordTransaction(TransactionType::Hold, -612, 612, $so, 'Sipariş bloke edildi');
+        $gateway->authorize($so, 612, 'Sipariş provizyonu');
 
-        // ---- Barış: bloke, kurye bekliyor ----
+        // ---- Barış: provizyon alındı, kurye bekliyor ----
         $bo = Order::create([
             'code' => 'A24-114', 'customer_id' => $baris->id, 'zone_id' => $akcapinar->id,
             'raw_text' => 'gazete, yumurta, ekmek', 'address_label' => 'Ev', 'address_text' => 'Ataköy Cd. No:5',
             'items_total' => 200, 'safety_buffer' => 30, 'service_fee' => 350, 'reserved_amount' => 580,
             'status' => OrderStatus::Reserved, 'reserved_at' => now(),
         ]);
-        $baris->wallet->recordTransaction(TransactionType::Hold, -580, 580, $bo, 'Sipariş bloke edildi');
+        $bo->items()->createMany([
+            ['name' => 'Gazete', 'qty' => 1, 'estimated_price' => 30],
+            ['name' => 'Yumurta', 'qty' => 1, 'estimated_price' => 140],
+            ['name' => 'Ekmek', 'qty' => 1, 'estimated_price' => 30],
+        ]);
+        $gateway->authorize($bo, 580, 'Sipariş provizyonu');
     }
 }

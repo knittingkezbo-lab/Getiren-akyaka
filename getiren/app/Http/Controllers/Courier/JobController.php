@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Courier;
 
 use App\Enums\OrderStatus;
-use App\Enums\TransactionType;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\PriceHint;
 use App\Notifications\OrderNotification;
+use App\Payments\PaymentGateway;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -116,10 +116,11 @@ class JobController extends Controller
     }
 
     /**
-     * Fiş gir ve kapat = SETTLE. Ledger'ın "fişe göre kes → farkı iade" yarısı.
-     * Guard (status shopping/on_the_way) çift-settle'ı önler.
+     * Fiş gir ve kapat = SETTLE. "Fişe göre kes → fazlasını iade et"in gerçekleştiği yer.
+     * Kısmi tahsilde provizyonun kalanı sağlayıcı tarafından çözülür — ayrıca iade çağrısı gerekmez.
+     * Guard (status shopping/on_the_way) çift-settle'ı önler; geçit katmanı da ikinci tahsili reddeder.
      */
-    public function settle(Request $request, Order $order): RedirectResponse
+    public function settle(Request $request, Order $order, PaymentGateway $gateway): RedirectResponse
     {
         abort_if($order->courier_id !== $request->user()->id, 403);
         abort_unless(in_array($order->status, [OrderStatus::Shopping, OrderStatus::OnTheWay], true), 422);
@@ -130,10 +131,7 @@ class JobController extends Controller
             'items.*.actual_price' => ['required', 'numeric', 'min:0', 'max:100000'],
         ]);
 
-        $order->loadMissing('customer.wallet');
-        $wallet = $order->customer->wallet;
-
-        DB::transaction(function () use ($order, $wallet, $data) {
+        DB::transaction(function () use ($order, $data, $gateway) {
             $receipt = 0.0;
             foreach ($data['items'] as $row) {
                 $item = $order->items()->whereKey($row['id'])->first();
@@ -145,30 +143,28 @@ class JobController extends Controller
 
             $serviceFee = (float) $order->service_fee;
             $reserved = (float) $order->reserved_amount;
-            $captured = $receipt + $serviceFee;
+            $total = round($receipt + $serviceFee, 2);
 
-            if ($captured <= $reserved) {
-                $refund = round($reserved - $captured, 2);
-                // Tahsil: blokeden harcanan kısım düşülür (available değişmez)
-                $wallet->recordTransaction(TransactionType::Capture, 0, -$captured, $order, 'Fişe göre tahsil', [
-                    'receipt' => $receipt, 'service_fee' => $serviceFee,
-                ]);
-                // İade: kalan bloke tekrar kullanılabilir bakiyeye döner
-                $wallet->recordTransaction(TransactionType::Refund, $refund, -$refund, $order, 'Fazla provizyon iadesi');
+            $auth = $order->activeAuthorization();
+            abort_if($auth === null, 422); // provizyonu olmayan sipariş kapatılamaz
+
+            if ($total <= $reserved) {
+                // Fiş kadarını kes; provizyonun kalanı sağlayıcıda serbest kalır = iade
+                $gateway->capture($auth, $total);
 
                 $order->update([
                     'status' => OrderStatus::Delivered,
                     'actual_receipt_amount' => $receipt,
-                    'captured_amount' => $captured,
-                    'refund_amount' => $refund,
+                    'captured_amount' => $total,
+                    'refund_amount' => round($reserved - $total, 2),
                     'delivered_at' => now(),
                 ]);
             } else {
-                // Fiş blokeyi aştı: para hareket etmez, ek ödeme beklenir
+                // Fiş provizyonu aştı: provizyona dokunulmaz, müşteriden fark beklenir
                 $order->update([
                     'status' => OrderStatus::RequiresExtraPayment,
                     'actual_receipt_amount' => $receipt,
-                    'extra_required_amount' => round($captured - $reserved, 2),
+                    'extra_required_amount' => round($total - $reserved, 2),
                 ]);
             }
         });

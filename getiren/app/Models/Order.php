@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AuthorizationStatus;
 use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -54,8 +55,17 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function transactions(): HasMany
+    public function authorizations(): HasMany
     {
-        return $this->hasMany(WalletTransaction::class);
+        return $this->hasMany(PaymentAuthorization::class);
+    }
+
+    /** Hâlâ açık (tahsil ya da çözme bekleyen) provizyon — yoksa null. */
+    public function activeAuthorization(): ?PaymentAuthorization
+    {
+        return $this->authorizations()
+            ->where('status', AuthorizationStatus::Authorized)
+            ->latest('id')
+            ->first();
     }
 }

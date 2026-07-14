@@ -66,7 +66,7 @@ class AuditLogTest extends TestCase
     {
         $admin = $this->makeAdmin();
         $courier = $this->makeCourier();
-        $customer = $this->makeCustomer(1000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
 
         $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);

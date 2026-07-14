@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AuthorizationStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\PriceHint;
@@ -23,10 +24,10 @@ class CourierSettleTest extends TestCase
         $this->seed([ZoneSeeder::class, PriceHintSeeder::class, SettingSeeder::class]);
     }
 
-    /** @return array{0: User, 1: User, 2: Order} müşteri, kurye, alışverişteki sipariş (reserved 670, fiş 365) */
+    /** @return array{0: User, 1: User, 2: Order} müşteri, kurye, alışverişteki sipariş (provizyon 670, fiş 365) */
     private function shoppingOrder(): array
     {
-        $customer = $this->makeCustomer(1000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
         $this->actingAs($customer)->post('/musteri/siparis', [
             'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek',
@@ -48,7 +49,7 @@ class CourierSettleTest extends TestCase
 
     public function test_accept_assigns_courier(): void
     {
-        $customer = $this->makeCustomer(1000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
         $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
         $order = Order::firstOrFail();
@@ -61,9 +62,10 @@ class CourierSettleTest extends TestCase
         $this->assertEquals(OrderStatus::Assigned, $order->status);
     }
 
-    public function test_settle_captures_and_refunds_difference(): void
+    /** Fişe göre kes → kalan sağlayıcıda çözülür ("fazlasını iade et"in gerçekleştiği yer). */
+    public function test_settle_captures_receipt_and_releases_the_rest(): void
     {
-        [$customer, $courier, $order] = $this->shoppingOrder();
+        [, $courier, $order] = $this->shoppingOrder();
 
         $this->actingAs($courier)
             ->post("/kurye/is/{$order->id}/fis", ['items' => $this->receiptFromEstimates($order)])
@@ -75,24 +77,23 @@ class CourierSettleTest extends TestCase
         $this->assertEquals(615.0, (float) $order->captured_amount);   // 365 + 250 hizmet
         $this->assertEquals(55.0, (float) $order->refund_amount);      // 670 - 615
 
-        $wallet = $customer->wallet->refresh();
-        $this->assertEquals(385.0, (float) $wallet->balance);          // 330 + 55 iade
-        $this->assertEquals(0.0, (float) $wallet->reserved);
-        $this->assertLedgerConsistent($wallet);
-
-        $this->assertDatabaseHas('wallet_transactions', ['order_id' => $order->id, 'type' => 'capture']);
-        $this->assertDatabaseHas('wallet_transactions', ['order_id' => $order->id, 'type' => 'refund', 'amount' => 55]);
+        $auth = $order->authorizations()->sole();
+        $this->assertEquals(AuthorizationStatus::Captured, $auth->status);
+        $this->assertEquals(670.0, (float) $auth->amount);
+        $this->assertEquals(615.0, (float) $auth->captured_amount);
+        $this->assertEquals(55.0, $auth->releasedAmount());
+        $this->assertAuthorizationsConsistent($order);
     }
 
-    public function test_settle_over_budget_flags_extra_payment_without_moving_money(): void
+    public function test_settle_over_budget_flags_extra_payment_without_touching_the_authorization(): void
     {
-        [$customer, $courier, $order] = $this->shoppingOrder();
+        [, $courier, $order] = $this->shoppingOrder();
         $items = $order->items->values();
         $payload = [
             ['id' => $items[0]->id, 'actual_price' => 100],
             ['id' => $items[1]->id, 'actual_price' => 350],
             ['id' => $items[2]->id, 'actual_price' => 50],
-        ]; // toplam 500 → tahsil 750 > 670 bloke
+        ]; // toplam 500 → 750 gerekiyor > 670 provizyon
 
         $this->actingAs($courier)->post("/kurye/is/{$order->id}/fis", ['items' => $payload])->assertRedirect();
 
@@ -100,42 +101,41 @@ class CourierSettleTest extends TestCase
         $this->assertEquals(OrderStatus::RequiresExtraPayment, $order->status);
         $this->assertEquals(80.0, (float) $order->extra_required_amount); // 750 - 670
 
-        $wallet = $customer->wallet->refresh();
-        $this->assertEquals(330.0, (float) $wallet->balance);   // değişmedi
-        $this->assertEquals(670.0, (float) $wallet->reserved);  // değişmedi
-        $this->assertLedgerConsistent($wallet);
-        $this->assertDatabaseMissing('wallet_transactions', ['order_id' => $order->id, 'type' => 'capture']);
+        // Provizyona dokunulmadı: para hareket etmedi, müşterinin onayı bekleniyor
+        $auth = $order->authorizations()->sole();
+        $this->assertEquals(AuthorizationStatus::Authorized, $auth->status);
+        $this->assertNull($auth->captured_amount);
+        $this->assertAuthorizationsConsistent($order);
     }
 
     /**
      * REGRESYON: ilk turda bulduğumuz çift-tahsil hatası.
-     * Teslim edilmiş sipariş tekrar settle edilememeli; para ikinci kez hareket etmemeli.
+     * Teslim edilmiş sipariş tekrar settle edilememeli; provizyon ikinci kez kesilmemeli.
      */
-    public function test_double_settle_is_rejected_and_funds_untouched(): void
+    public function test_double_settle_is_rejected_and_authorization_untouched(): void
     {
-        [$customer, $courier, $order] = $this->shoppingOrder();
+        [, $courier, $order] = $this->shoppingOrder();
         $payload = $this->receiptFromEstimates($order);
 
         $this->actingAs($courier)->post("/kurye/is/{$order->id}/fis", ['items' => $payload])->assertRedirect();
 
-        $wallet = $customer->wallet->refresh();
-        $balanceAfter = (float) $wallet->balance;
-        $txCount = $wallet->transactions()->count();
+        $capturedAt = $order->authorizations()->sole()->captured_at;
 
         // ikinci settle denemesi → guard reddeder (422)
         $this->actingAs($courier)->post("/kurye/is/{$order->id}/fis", ['items' => $payload])->assertStatus(422);
 
-        $wallet->refresh();
-        $this->assertEquals($balanceAfter, (float) $wallet->balance, 'Çift settle bakiyeyi değiştirdi!');
-        $this->assertEquals($txCount, $wallet->transactions()->count(), 'Çift settle fazladan hareket yazdı!');
-        $this->assertLedgerConsistent($wallet);
+        $order->refresh();
+        $auth = $order->authorizations()->sole(); // hâlâ tek provizyon
+        $this->assertEquals(615.0, (float) $auth->captured_amount, 'Çift settle tahsil tutarını değiştirdi!');
+        $this->assertEquals($capturedAt, $auth->captured_at, 'Çift settle provizyonu yeniden kesti!');
+        $this->assertAuthorizationsConsistent($order);
     }
 
     public function test_settle_learns_unknown_item_into_dictionary(): void
     {
         $this->assertDatabaseMissing('price_hints', ['keyword' => 'peynir']);
 
-        $customer = $this->makeCustomer(2000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
         $this->actingAs($customer)->post('/musteri/siparis', [
             'raw_text' => 'peynir', 'zone_id' => $zone->id, 'terms_accepted' => true,
@@ -157,7 +157,7 @@ class CourierSettleTest extends TestCase
 
     public function test_settle_does_not_relearn_known_item(): void
     {
-        [$customer, $courier, $order] = $this->shoppingOrder(); // süt/ağrı kesici/ekmek — hepsi sözlükte
+        [, $courier, $order] = $this->shoppingOrder(); // süt/ağrı kesici/ekmek — hepsi sözlükte
         $before = PriceHint::count();
 
         $this->actingAs($courier)->post("/kurye/is/{$order->id}/fis", ['items' => $this->receiptFromEstimates($order)])->assertRedirect();
@@ -167,7 +167,7 @@ class CourierSettleTest extends TestCase
 
     public function test_courier_cannot_settle_another_couriers_job(): void
     {
-        [$customer, $courier, $order] = $this->shoppingOrder();
+        [, , $order] = $this->shoppingOrder();
         $other = $this->makeCourier();
 
         $this->actingAs($other)
@@ -175,5 +175,6 @@ class CourierSettleTest extends TestCase
             ->assertForbidden();
 
         $this->assertEquals(OrderStatus::Shopping, $order->refresh()->status);
+        $this->assertEquals(AuthorizationStatus::Authorized, $order->authorizations()->sole()->status);
     }
 }

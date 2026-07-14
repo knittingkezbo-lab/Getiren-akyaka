@@ -5,7 +5,6 @@ import { computed, ref } from 'vue';
 
 const props = defineProps({
     order: { type: Object, required: true },
-    balance: { type: Number, default: 0 },
 });
 
 const money = (n) => Number(n).toLocaleString('tr-TR');
@@ -152,10 +151,11 @@ const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-
                 <template v-if="order.status === 'requires_extra_payment'">
                     <hr class="ticket__perf" />
                     <div class="ticket__row"><span>Ek ödeme gerekiyor</span><b class="num" style="color:var(--danger)">{{ money(order.extra_required_amount) }} TL</b></div>
-                    <div class="ticket__row"><span>Kullanılabilir (demo)</span><b class="num">{{ money(balance) }} TL</b></div>
+                    <p class="hint" style="margin:6px 0 0">
+                        Fiş provizyonu aştı. Onaylarsan fark ayrı bir çekim olarak tahsil edilir.
+                    </p>
                     <p v-if="extraForm.errors.extra" class="error-text" style="margin-top:8px">⚠ {{ extraForm.errors.extra }}</p>
                     <button
-                        v-if="balance >= order.extra_required_amount"
                         class="btn btn--primary btn--block btn--lg"
                         style="margin-top:12px"
                         :disabled="extraForm.processing"
@@ -163,10 +163,6 @@ const payExtra = () => extraForm.post(`/musteri/siparisler/${props.order.id}/ek-
                     >
                         {{ extraForm.processing ? 'İşleniyor…' : `${money(order.extra_required_amount)} TL öde ve tamamla` }}
                     </button>
-                    <template v-else>
-                        <div class="alert alert--warn" style="margin-top:12px"><span class="alert__ic">!</span><div>Ek ödeme için demo bakiye yetersiz.</div></div>
-                        <Link href="/musteri/cuzdan" class="btn btn--soft btn--block" style="margin-top:8px">Demo bakiye ekle</Link>
-                    </template>
                 </template>
 
                 <button

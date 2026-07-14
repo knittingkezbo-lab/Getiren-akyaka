@@ -56,7 +56,6 @@ class EmailVerificationTest extends TestCase
     {
         config(['features.email_verification' => true]);
         $user = User::factory()->unverified()->create(['role' => UserRole::Customer]);
-        $user->wallet()->create(['balance' => 0, 'reserved' => 0, 'currency' => 'TRY']);
 
         $this->actingAs($user)->get('/musteri')->assertRedirect(route('verification.notice'));
     }

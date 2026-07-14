@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\AuthorizationStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\PaymentAuthorization;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,8 +15,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $user = $request->user()->loadMissing('wallet');
-        $wallet = $user->wallet;
+        $user = $request->user();
 
         $active = $user->ordersAsCustomer()
             ->whereIn('status', [
@@ -33,10 +34,17 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
+        $mine = PaymentAuthorization::whereHas('order', fn ($q) => $q->where('customer_id', $user->id));
+
         return Inertia::render('Customer/Dashboard', [
             'stats' => [
-                'balance' => (float) ($wallet?->balance ?? 0),
-                'reserved' => (float) ($wallet?->reserved ?? 0),
+                // Ödeme aracında ayrılmış ama henüz kesilmemiş tutar — bakiye DEĞİL
+                'open_authorized' => (float) (clone $mine)->where('status', AuthorizationStatus::Authorized)->sum('amount'),
+                'month_captured' => (float) (clone $mine)
+                    ->where('status', AuthorizationStatus::Captured)
+                    ->whereMonth('captured_at', now()->month)
+                    ->whereYear('captured_at', now()->year)
+                    ->sum('captured_amount'),
                 'month_count' => $user->ordersAsCustomer()
                     ->whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)

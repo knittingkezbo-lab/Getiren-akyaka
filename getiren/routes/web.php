@@ -7,8 +7,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboard;
 use App\Http\Controllers\Customer\OrderController;
+use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\ProfileController;
-use App\Http\Controllers\Customer\WalletController;
 use App\Http\Controllers\Courier\JobController;
 use App\Http\Controllers\Courier\SettingsController as CourierSettings;
 use App\Http\Controllers\Admin\AuditLogController as AdminAuditLog;
@@ -59,8 +59,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/siparisler', [OrderController::class, 'index'])->name('orders.index');
 
-        Route::get('/cuzdan', [WalletController::class, 'index'])->name('wallet');
-        Route::post('/cuzdan/yukle', [WalletController::class, 'topup'])->name('wallet.topup');
+        Route::get('/odemeler', [PaymentController::class, 'index'])->name('payments');
 
         Route::get('/profil', [ProfileController::class, 'edit'])->name('profile');
         Route::put('/profil', [ProfileController::class, 'updateInfo'])->name('profile.info');

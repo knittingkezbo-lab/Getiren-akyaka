@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Enums\OrderStatus;
-use App\Enums\TransactionType;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
@@ -12,6 +11,8 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Models\Zone;
 use App\Notifications\OrderNotification;
+use App\Payments\PaymentException;
+use App\Payments\PaymentGateway;
 use App\Services\OrderEstimator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,19 +62,16 @@ class OrderController extends Controller
 
     public function create(Request $request): Response
     {
-        $user = $request->user()->loadMissing('wallet');
-
         return Inertia::render('Customer/OrderNew', [
             'zones' => Zone::where('is_active', true)->orderBy('sort_order')->get(['id', 'key', 'name', 'service_fee']),
             'priceHints' => PriceHint::where('is_active', true)->get(['keyword', 'unit_price']),
             'bufferPct' => (float) Setting::get('safety_buffer_pct', 15),
             'minOrderTotal' => (float) Setting::get('min_order_total', 0),
-            'balance' => (float) ($user->wallet?->balance ?? 0),
-            'addresses' => $user->addresses()->get(['id', 'label', 'line']),
+            'addresses' => $request->user()->addresses()->get(['id', 'label', 'line']),
         ]);
     }
 
-    public function store(Request $request, OrderEstimator $estimator): RedirectResponse
+    public function store(Request $request, OrderEstimator $estimator, PaymentGateway $gateway): RedirectResponse
     {
         $data = $request->validate([
             'raw_text' => ['required', 'string', 'max:1000'],
@@ -87,48 +85,40 @@ class OrderController extends Controller
         ]);
 
         $zone = Zone::where('is_active', true)->findOrFail($data['zone_id']);
-        $user = $request->user()->loadMissing('wallet');
-        $wallet = $user->wallet;
+        $user = $request->user();
 
         // Sunucu tarafı OTORİTER tahmin (istemciye güvenilmez)
         $est = $estimator->estimate($data['raw_text'], $zone);
 
-        if (! $wallet || (float) $wallet->balance < $est['reserved_amount']) {
-            throw ValidationException::withMessages([
-                'raw_text' => 'Yetersiz bakiye. Bu sipariş için '.number_format($est['reserved_amount'], 0, ',', '.').' TL gerekiyor.',
-            ]);
+        try {
+            $order = DB::transaction(function () use ($user, $zone, $data, $est, $gateway) {
+                $order = $user->ordersAsCustomer()->create([
+                    'code' => $this->nextCode(),
+                    'zone_id' => $zone->id,
+                    'raw_text' => $data['raw_text'],
+                    'address_label' => $data['address_label'] ?? null,
+                    'address_text' => $data['address_text'] ?? null,
+                    'customer_note' => $data['customer_note'] ?? null,
+                    'items_total' => $est['items_total'],
+                    'safety_buffer' => $est['safety_buffer'],
+                    'service_fee' => $est['service_fee'],
+                    'reserved_amount' => $est['reserved_amount'],
+                    'status' => OrderStatus::Reserved,
+                    'terms_version' => config('features.terms_version'),
+                    'reserved_at' => now(),
+                ]);
+
+                $order->items()->createMany($est['items']);
+
+                // Tahmin edilen tutar müşterinin ödeme aracında provizyona alınır (para hesaba geçmez)
+                $gateway->authorize($order, (float) $est['reserved_amount'], 'Sipariş provizyonu');
+
+                return $order;
+            });
+        } catch (PaymentException $e) {
+            // Gerçek sağlayıcıda kart reddi buraya düşer; kullanıcı formda görür
+            throw ValidationException::withMessages(['raw_text' => 'Provizyon alınamadı: '.$e->getMessage()]);
         }
-
-        $order = DB::transaction(function () use ($user, $wallet, $zone, $data, $est) {
-            $order = $user->ordersAsCustomer()->create([
-                'code' => $this->nextCode(),
-                'zone_id' => $zone->id,
-                'raw_text' => $data['raw_text'],
-                'address_label' => $data['address_label'] ?? null,
-                'address_text' => $data['address_text'] ?? null,
-                'customer_note' => $data['customer_note'] ?? null,
-                'items_total' => $est['items_total'],
-                'safety_buffer' => $est['safety_buffer'],
-                'service_fee' => $est['service_fee'],
-                'reserved_amount' => $est['reserved_amount'],
-                'status' => OrderStatus::Reserved,
-                'terms_version' => config('features.terms_version'),
-                'reserved_at' => now(),
-            ]);
-
-            $order->items()->createMany($est['items']);
-
-            // Bloke: kullanılabilir bakiyeden düş, reserved'a ekle (tek ledger satırı)
-            $wallet->recordTransaction(
-                TransactionType::Hold,
-                -$est['reserved_amount'],
-                $est['reserved_amount'],
-                $order,
-                'Sipariş provizyona alındı',
-            );
-
-            return $order;
-        });
 
         // Kuryelere yeni iş fırsatı (yalnızca web zil — her siparişte e-posta spam olmasın)
         $couriers = User::where('role', UserRole::Courier)->get();
@@ -183,32 +173,27 @@ class OrderController extends Controller
                     'actual_price' => $i->actual_price !== null ? (float) $i->actual_price : null,
                 ])->all(),
             ],
-            'balance' => (float) ($request->user()->wallet?->balance ?? 0),
         ]);
     }
 
-    public function cancel(Request $request, Order $order): RedirectResponse
+    public function cancel(Request $request, Order $order, PaymentGateway $gateway): RedirectResponse
     {
         abort_if($order->customer_id !== $request->user()->id, 403);
         abort_unless(in_array($order->status, [OrderStatus::Reserved, OrderStatus::Assigned], true), 422);
 
-        $user = $request->user()->loadMissing('wallet');
         $courier = $order->courier; // iptal öncesi atanmış kurye (varsa haber verilecek)
 
-        DB::transaction(function () use ($user, $order) {
+        DB::transaction(function () use ($order, $gateway) {
             // Yarış koşuluna karşı satırı kilitle ve durumu yeniden doğrula:
-            // eşzamanlı çift iptal → çift iade (ledger bozulması) önlenir.
+            // eşzamanlı çift iptal → çift çözme denemesi önlenir.
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
             abort_unless(in_array($locked->status, [OrderStatus::Reserved, OrderStatus::Assigned], true), 422);
 
-            // Bloke çöz: reserved'daki tutar tekrar kullanılabilir bakiyeye döner (tek ledger satırı)
-            $user->wallet->recordTransaction(
-                TransactionType::Release,
-                (float) $locked->reserved_amount,
-                -(float) $locked->reserved_amount,
-                $locked,
-                'Sipariş iptal · provizyon çözüldü',
-            );
+            // Provizyonu hiç tahsil etmeden çöz — para zaten hesaba geçmemişti
+            if ($auth = $locked->activeAuthorization()) {
+                $gateway->void($auth);
+            }
+
             $locked->update(['status' => OrderStatus::Cancelled]);
         });
 
@@ -229,44 +214,41 @@ class OrderController extends Controller
     }
 
     /**
-     * Ek ödeme tamamlama: fiş blokeyi aşan sipariş için müşteri farkı öder.
-     * Kalan bloke tahsil edilir + fark kullanılabilir bakiyeden düşülür (ExtraCharge).
+     * Ek ödeme: fiş provizyonu aştığında müşteri farkı onaylar.
+     * Mevcut provizyon tamamen tahsil edilir, fark AYRI bir çekim olarak alınır —
+     * gerçek sağlayıcıda da provizyondan fazlası tahsil edilemez.
      */
-    public function payExtra(Request $request, Order $order): RedirectResponse
+    public function payExtra(Request $request, Order $order, PaymentGateway $gateway): RedirectResponse
     {
         abort_if($order->customer_id !== $request->user()->id, 403);
         abort_unless($order->status === OrderStatus::RequiresExtraPayment, 422);
 
-        $user = $request->user()->loadMissing('wallet');
-        $wallet = $user->wallet;
         $extra = (float) $order->extra_required_amount;
         $reserved = (float) $order->reserved_amount;
-        $captured = $reserved + $extra;
 
-        if (! $wallet || (float) $wallet->balance < $extra) {
-            throw ValidationException::withMessages([
-                'extra' => 'Yetersiz bakiye. Ek ödeme için '.number_format($extra, 0, ',', '.').' TL gerekiyor.',
-            ]);
+        try {
+            DB::transaction(function () use ($order, $gateway, $extra, $reserved) {
+                $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+                abort_unless($locked->status === OrderStatus::RequiresExtraPayment, 422);
+
+                // 1) İlk provizyonun tamamını tahsil et
+                $auth = $locked->activeAuthorization();
+                abort_if($auth === null, 422);
+                $gateway->capture($auth, $reserved);
+
+                // 2) Farkı yeni bir provizyon açıp hemen tahsil et
+                $gateway->capture($gateway->authorize($locked, $extra, 'Ek ödeme'), $extra);
+
+                $locked->update([
+                    'status' => OrderStatus::Delivered,
+                    'captured_amount' => round($reserved + $extra, 2),
+                    'refund_amount' => 0,
+                    'delivered_at' => now(),
+                ]);
+            });
+        } catch (PaymentException $e) {
+            throw ValidationException::withMessages(['extra' => 'Ek ödeme alınamadı: '.$e->getMessage()]);
         }
-
-        DB::transaction(function () use ($wallet, $order, $extra, $reserved, $captured) {
-            // Kullanılabilirden ek tutar düşülür, bloke edilen tamamen tahsil edilir
-            $wallet->recordTransaction(
-                TransactionType::ExtraCharge,
-                -$extra,
-                -$reserved,
-                $order,
-                'Ek ödeme ve tahsil',
-                ['captured' => $captured, 'extra' => $extra],
-            );
-
-            $order->update([
-                'status' => OrderStatus::Delivered,
-                'captured_amount' => $captured,
-                'refund_amount' => 0,
-                'delivered_at' => now(),
-            ]);
-        });
 
         return redirect()->route('customer.orders.show', $order)->with(
             'success',

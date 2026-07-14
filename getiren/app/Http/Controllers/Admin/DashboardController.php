@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AuthorizationStatus;
 use App\Enums\OrderStatus;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\PaymentAuthorization;
 use App\Models\User;
-use App\Models\Wallet;
 use App\Models\Zone;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -53,7 +54,7 @@ class DashboardController extends Controller
             'kpis' => [
                 'today_orders' => Order::whereDate('created_at', today())->count(),
                 'revenue_today' => (float) Order::whereDate('delivered_at', today())->sum('captured_amount'),
-                'blocked_total' => (float) Wallet::sum('reserved'),
+                'blocked_total' => (float) PaymentAuthorization::where('status', AuthorizationStatus::Authorized)->sum('amount'),
                 'couriers' => User::where('role', UserRole::Courier)->count(),
             ],
             'chart' => $chart,

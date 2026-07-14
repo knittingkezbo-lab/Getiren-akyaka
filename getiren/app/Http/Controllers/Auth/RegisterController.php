@@ -48,11 +48,6 @@ class RegisterController extends Controller
             $user->approve();
         }
 
-        // Müşteriye cüzdan aç
-        if ($role === UserRole::Customer) {
-            $user->wallet()->create(['balance' => 0, 'reserved' => 0, 'currency' => 'TRY']);
-        }
-
         Auth::login($user);
         $request->session()->regenerate();
 

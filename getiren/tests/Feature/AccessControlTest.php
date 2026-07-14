@@ -46,7 +46,7 @@ class AccessControlTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_registration_creates_customer_with_wallet(): void
+    public function test_registration_creates_customer(): void
     {
         $this->post('/register', [
             'first_name' => 'Test',
@@ -62,7 +62,6 @@ class AccessControlTest extends TestCase
         $user = User::where('email', 'yeni@ornek.com')->first();
         $this->assertNotNull($user);
         $this->assertEquals(UserRole::Customer, $user->role);
-        $this->assertNotNull($user->wallet);
         $this->assertAuthenticatedAs($user);
     }
 

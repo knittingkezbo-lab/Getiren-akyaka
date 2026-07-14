@@ -11,7 +11,7 @@ class BankInfoTest extends TestCase
 
     public function test_customer_can_save_iban_normalized(): void
     {
-        $customer = $this->makeCustomer(0);
+        $customer = $this->makeCustomer();
 
         $this->actingAs($customer)->put('/musteri/profil/banka', [
             'iban' => 'tr12 3456 7890 1234 5678 9012 34', // boşluklu + küçük harf
@@ -25,7 +25,7 @@ class BankInfoTest extends TestCase
 
     public function test_invalid_iban_is_rejected(): void
     {
-        $customer = $this->makeCustomer(0);
+        $customer = $this->makeCustomer();
 
         $this->actingAs($customer)->put('/musteri/profil/banka', [
             'iban' => 'TR123', // geçersiz (24 rakam değil)
@@ -49,7 +49,7 @@ class BankInfoTest extends TestCase
 
     public function test_empty_iban_clears_bank_info(): void
     {
-        $customer = $this->makeCustomer(0);
+        $customer = $this->makeCustomer();
         $customer->update(['iban' => 'TR123456789012345678901234', 'iban_holder' => 'Eski']);
 
         $this->actingAs($customer)->put('/musteri/profil/banka', ['iban' => '', 'iban_holder' => 'Eski'])

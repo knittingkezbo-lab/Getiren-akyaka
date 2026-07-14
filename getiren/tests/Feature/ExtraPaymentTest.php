@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AuthorizationStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
@@ -23,14 +24,14 @@ class ExtraPaymentTest extends TestCase
     }
 
     /**
-     * Fiş blokeyi aşan (requires_extra_payment) bir sipariş üretir:
-     * bloke 670, fiş 500 + hizmet 250 = 750 tahsil → ek 80.
+     * Fiş provizyonu aşan (requires_extra_payment) bir sipariş üretir:
+     * provizyon 670, fiş 500 + hizmet 250 = 750 gerekiyor → ek 80.
      *
      * @return array{0: User, 1: Order}
      */
-    private function overBudgetOrder(float $customerBalance = 1000): array
+    private function overBudgetOrder(): array
     {
-        $customer = $this->makeCustomer($customerBalance);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
         $this->actingAs($customer)->post('/musteri/siparis', [
             'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek',
@@ -60,10 +61,13 @@ class ExtraPaymentTest extends TestCase
         $this->assertEquals(80.0, (float) $order->extra_required_amount);
     }
 
+    /**
+     * Ek ödeme: ilk provizyon tamamen kesilir, FARK ayrı bir çekim olarak alınır.
+     * Gerçek sağlayıcıda da provizyondan fazlası tahsil edilemez — bu yüzden iki kayıt.
+     */
     public function test_customer_pays_extra_and_order_completes(): void
     {
-        [$customer, $order] = $this->overBudgetOrder(1000);
-        // sipariş sonrası: kullanılabilir 330, bloke 670, ek 80
+        [$customer, $order] = $this->overBudgetOrder();
 
         $this->actingAs($customer)
             ->post("/musteri/siparisler/{$order->id}/ek-odeme")
@@ -72,34 +76,44 @@ class ExtraPaymentTest extends TestCase
         $order->refresh();
         $this->assertEquals(OrderStatus::Delivered, $order->status);
         $this->assertEquals(750.0, (float) $order->captured_amount);
+        $this->assertEquals(0.0, (float) $order->refund_amount);
 
-        $wallet = $customer->wallet->refresh();
-        $this->assertEquals(250.0, (float) $wallet->balance);   // 330 - 80 ek
-        $this->assertEquals(0.0, (float) $wallet->reserved);    // 670 bloke tahsil edildi
-        $this->assertLedgerConsistent($wallet);
+        $auths = $order->authorizations()->orderBy('id')->get();
+        $this->assertCount(2, $auths);
 
-        $this->assertDatabaseHas('wallet_transactions', [
-            'order_id' => $order->id,
-            'type' => 'extra_charge',
-            'amount' => -80,
-        ]);
+        // 1) sipariş provizyonu: 670 alındı, 670 kesildi (geri bırakılan yok)
+        $this->assertEquals(AuthorizationStatus::Captured, $auths[0]->status);
+        $this->assertEquals(670.0, (float) $auths[0]->amount);
+        $this->assertEquals(670.0, (float) $auths[0]->captured_amount);
+
+        // 2) ek ödeme: 80 alındı, 80 kesildi
+        $this->assertEquals(AuthorizationStatus::Captured, $auths[1]->status);
+        $this->assertEquals(80.0, (float) $auths[1]->amount);
+        $this->assertEquals(80.0, (float) $auths[1]->captured_amount);
+
+        // toplam kesilen = siparişin tahsil tutarı
+        $this->assertEquals(750.0, (float) $auths->sum('captured_amount'));
+        $this->assertAuthorizationsConsistent($order);
     }
 
-    public function test_extra_payment_rejected_when_balance_insufficient(): void
+    public function test_double_extra_payment_is_rejected(): void
     {
-        // tam sipariş kadar bakiye → sipariş sonrası kullanılabilir 0, ek 80 karşılanamaz
-        [$customer, $order] = $this->overBudgetOrder(670);
+        [$customer, $order] = $this->overBudgetOrder();
 
-        $this->actingAs($customer)
-            ->post("/musteri/siparisler/{$order->id}/ek-odeme")
-            ->assertSessionHasErrors('extra');
+        $this->actingAs($customer)->post("/musteri/siparisler/{$order->id}/ek-odeme")->assertRedirect();
 
-        $this->assertEquals(OrderStatus::RequiresExtraPayment, $order->refresh()->status);
+        // ikinci deneme: sipariş artık delivered → guard reddeder, para ikinci kez çekilmez
+        $this->actingAs($customer)->post("/musteri/siparisler/{$order->id}/ek-odeme")->assertStatus(422);
+
+        $order->refresh();
+        $this->assertEquals(750.0, (float) $order->authorizations()->sum('captured_amount'));
+        $this->assertCount(2, $order->authorizations()->get());
+        $this->assertAuthorizationsConsistent($order);
     }
 
     public function test_extra_payment_rejected_when_not_required(): void
     {
-        $customer = $this->makeCustomer(1000);
+        $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
         $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
         $order = Order::firstOrFail(); // reserved — ek ödeme gerektirmez

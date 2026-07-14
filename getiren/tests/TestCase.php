@@ -2,25 +2,17 @@
 
 namespace Tests;
 
-use App\Enums\TransactionType;
+use App\Enums\AuthorizationStatus;
 use App\Enums\UserRole;
+use App\Models\Order;
 use App\Models\User;
-use App\Models\Wallet;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
-    protected function makeCustomer(float $balance = 0): User
+    protected function makeCustomer(): User
     {
-        $user = User::factory()->create(['role' => UserRole::Customer]);
-        $wallet = $user->wallet()->create(['balance' => 0, 'reserved' => 0, 'currency' => 'TRY']);
-
-        // Açılış bakiyesi deftere yazılır (seeder gibi) — ledger tutarlılığı korunsun
-        if ($balance > 0) {
-            $wallet->recordTransaction(TransactionType::TopUp, $balance, 0, null, 'Açılış bakiyesi');
-        }
-
-        return $user->refresh();
+        return User::factory()->create(['role' => UserRole::Customer]);
     }
 
     protected function makeCourier(): User
@@ -29,16 +21,30 @@ abstract class TestCase extends BaseTestCase
     }
 
     /**
-     * Cüzdan defteri değişmezi: bakiye == Σamount, bloke == Σreserved_delta.
-     * Tüm para akışlarında bu korunmalı (ledger'ın var oluş sebebi).
+     * Provizyon değişmezi — kaldırılan cüzdan defterinin yerini alan kural:
+     *  1) Bir siparişin aynı anda en fazla BİR açık provizyonu olabilir.
+     *  2) Kapanmış her provizyonda: kesilen + geri bırakılan = provizyona alınan.
+     * Para hareketinin olduğu her akışta bu korunmalı.
      */
-    protected function assertLedgerConsistent(Wallet $wallet): void
+    protected function assertAuthorizationsConsistent(Order $order): void
     {
-        $wallet->refresh();
-        $sumAmount = (float) $wallet->transactions()->sum('amount');
-        $sumReserved = (float) $wallet->transactions()->sum('reserved_delta');
+        $authorizations = $order->authorizations()->get();
 
-        $this->assertEqualsWithDelta((float) $wallet->balance, $sumAmount, 0.001, 'Bakiye defter toplamıyla (Σamount) uyuşmuyor');
-        $this->assertEqualsWithDelta((float) $wallet->reserved, $sumReserved, 0.001, 'Bloke defter toplamıyla (Σreserved_delta) uyuşmuyor');
+        $this->assertLessThanOrEqual(
+            1,
+            $authorizations->where('status', AuthorizationStatus::Authorized)->count(),
+            'Siparişin birden fazla açık provizyonu var',
+        );
+
+        $closed = $authorizations->whereIn('status', [AuthorizationStatus::Captured, AuthorizationStatus::Voided]);
+
+        foreach ($closed as $authorization) {
+            $this->assertEqualsWithDelta(
+                (float) $authorization->amount,
+                (float) $authorization->captured_amount + $authorization->releasedAmount(),
+                0.001,
+                "Provizyon #{$authorization->id}: kesilen + geri bırakılan, provizyona alınanı vermiyor",
+            );
+        }
     }
 }

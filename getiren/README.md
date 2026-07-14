@@ -1,18 +1,22 @@
 # Getiren · Akyaka — Laravel 13 + Vue (Inertia) · Docker
 
 Yerel concierge/kurye uygulaması. Müşteri serbest metinle sipariş verir; sistem tutarı
-tahmin edip cüzdandan **bloke eder**, kurye alışverişi yapıp fişi girer, sistem **gerçek
-fişe göre keser, fazlasını iade eder** (yetmezse ek ödeme ister). Her para hareketi
-`wallet_transactions` (ledger) tablosuna yazılır.
+tahmin edip ödeme aracında **provizyona alır**, kurye alışverişi yapıp fişi girer, sistem
+**gerçek fişe göre keser, fazlasını geri bırakır** (yetmezse ek ödeme ister).
+
+**Getiren para tutmaz.** Sanal cüzdan / kullanıcı bakiyesi yoktur (hukuki tercih); ödeme her
+sipariş için ayrı bir provizyon olarak açılır ve `payment_authorizations` tablosunda izlenir.
 
 **Yığın:** Laravel 13 · Vue 3 + Inertia · MySQL 8 · Laravel Reverb (WebSocket) · Docker
 **Roller:** Müşteri · Kurye · Yönetici — ayrı alanlar, kendi yazdığımız session auth.
 
 ## Öne çıkan özellikler
 
-- **Ödeme / provizyon (demo) + ledger** — kullanıcıya provizyon dili (demo modu; gerçek kart
-  provizyonu ödeme sağlayıcısı bağlanınca), arka planda değişmez defter: bloke → fişe göre kes →
-  fark iade; 6 işlem türü, tek geçiş noktası `Wallet::recordTransaction`, `balance == Σamount`.
+- **Provizyon (authorize → capture → void)** — para hareketi yalnızca `PaymentGateway` arayüzünden
+  geçer. Bugün `DemoGateway` takılı (gerçek para hareketi yok, durum makinesi gerçek PSP ile aynı);
+  sağlayıcı anahtarları gelince `config/payments.php`'ye yeni sürücü eklenir, **uygulama kodu değişmez**.
+  Kısmi tahsilde provizyonun kalanı serbest kalır — "fazlasını iade et" budur. Kapanmış provizyona
+  ikinci kez dokunulamaz: çift-tahsil/çift-iade bu katmanda imkânsız.
 - **Sipariş akışı** — serbest-metin tahmini (yazarken öneri + gerçek fişten sözlük öğrenme),
   kurye üstlenme → alışveriş → yolda → fiş, ek-ödeme tamamlama, iptal + iade (çift-iptal kilidi).
 - **Bildirimler** — uygulama-içi zil + e-posta + **canlı WebSocket**. Kanal (e-posta /
@@ -61,21 +65,26 @@ docker compose exec app php artisan migrate:fresh --seed
   `verified` middleware); kapalıyken kayıt anında doğrulanır. Kurye kaydı admin onayı bekler
   (`courier.approved` middleware). Oturum hareketsizlik zaman aşımı: `SESSION_LIFETIME` (30 dk)
   + istemci idle-logout (`useIdleLogout`). Proxy/tünel arkası için `trustProxies`.
-- **Ledger** — `Wallet::recordTransaction(type, amount, reservedDelta, order, note, meta)`
-  tek giriş noktası; bakiye/bloke önbelleğini günceller, değişmez satır yazar.
+- **Ödeme** — `App\Payments\PaymentGateway`: `authorize()` → `capture()` / `void()`. Sürücü
+  `config/payments.php`'den seçilir (`PAYMENT_DRIVER`, varsayılan `demo`), container'da bağlanır.
+  Ek ödeme = ilk provizyonu tam kes + **farkı ayrı bir provizyonla** çek (gerçek PSP'de de
+  provizyondan fazlası tahsil edilemez). Değişmez: _kesilen + geri bırakılan = provizyona alınan_
+  (`TestCase::assertAuthorizationsConsistent`).
 - **Bildirim** — `OrderNotification.via()` istenen kanalları alıcının **olay** + **kanal**
   tercihleriyle kesiştirir; web bildirimi giderken `broadcast` kanalını da ekler (canlı push).
 - **Canlı** — Reverb standalone (Redis yok). App → `reverb:8080` (iç ağ), tarayıcı →
   `localhost:8085`. `AppLayout` kullanıcının özel kanalına abone → bildirimde `router.reload()`.
   `QUEUE_CONNECTION=sync` (worker'sız senkron broadcast).
-- Enum'lar: `App\Enums\{UserRole, OrderStatus, TransactionType}`.
+- Enum'lar: `App\Enums\{UserRole, OrderStatus, AuthorizationStatus, AuditAction}`.
 
 ## Veri modeli (migration'lar)
 
 - **users** — `role` (customer/courier/admin), `phone`, `iban`/`iban_holder` (iade/çekim),
   `email_verified_at`, `approved_at` (kurye onayı), `notify_email`, `notify_web`,
   `notification_events` (JSON: olay tercih haritası)
-- **wallets** + **wallet_transactions** — cüzdan + ledger (topup/hold/capture/refund/extra_charge/release)
+- **payment_authorizations** — sipariş başına provizyon (authorized/captured/voided/failed),
+  sağlayıcı + referans, alınan/kesilen tutar. Bir siparişin birden çok provizyonu olabilir (ek ödeme).
+  _(`wallets` + `wallet_transactions` kaldırıldı — migration 000017.)_
 - **orders** + **order_items** · **addresses** · **notifications** (database kanalı)
 - **zones** — Akyaka 250 · Gökova 350 · Akçapınar 350 (+ Ataköy pasif)
 - **price_hints** — serbest-metin tahmin sözlüğü · **settings** — %güvenlik payı vb.
@@ -85,7 +94,7 @@ docker compose exec app php artisan migrate:fresh --seed
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test    # 61 test / 206 assertion (sqlite :memory)
+docker compose exec app php artisan test    # 75 test / 255 assertion (sqlite :memory)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`) her push'ta iki job koşar:

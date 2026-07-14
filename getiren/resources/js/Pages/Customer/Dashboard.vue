@@ -41,8 +41,10 @@ const badgeClass = (status) =>
 
     <AppLayout :title="`Merhaba ${firstName} 👋`" subtitle="Bugün ne getirelim?">
         <template #actions>
-            <div class="walletchip"><span class="muted">Kullanılabilir</span> <b>{{ money(stats.balance) }} TL</b></div>
-            <Link class="btn btn--soft btn--sm" href="/musteri/cuzdan">+ Ekle</Link>
+            <div v-if="stats.open_authorized > 0" class="walletchip">
+                <span class="muted">Açık provizyon</span> <b>{{ money(stats.open_authorized) }} TL</b>
+            </div>
+            <Link class="btn btn--soft btn--sm" href="/musteri/odemeler">Ödemelerim</Link>
         </template>
 
         <div class="stack" style="gap:20px">
@@ -98,8 +100,8 @@ const badgeClass = (status) =>
 
             <!-- istatistikler -->
             <div class="stats">
-                <div class="stat"><div class="k">💳 Kullanılabilir</div><div class="v">{{ money(stats.balance) }} <small>TL</small></div></div>
-                <div class="stat"><div class="k">🔒 Provizyon</div><div class="v">{{ money(stats.reserved) }} <small>TL</small></div></div>
+                <div class="stat"><div class="k">🔒 Açık provizyon</div><div class="v">{{ money(stats.open_authorized) }} <small>TL</small></div></div>
+                <div class="stat"><div class="k">💳 Bu ay ödenen</div><div class="v">{{ money(stats.month_captured) }} <small>TL</small></div></div>
                 <div class="stat"><div class="k">📦 Bu ay</div><div class="v">{{ stats.month_count }} <small>sipariş</small></div></div>
             </div>
 

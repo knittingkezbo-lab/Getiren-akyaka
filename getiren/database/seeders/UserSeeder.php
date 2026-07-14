@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Enums\TransactionType;
 use App\Enums\UserRole;
 use App\Models\Address;
 use App\Models\User;
-use App\Models\Wallet;
 use App\Models\Zone;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -30,17 +28,16 @@ class UserSeeder extends Seeder
             $this->makeUser($name, $email, UserRole::Courier, $phone);
         }
 
-        // Müşteriler: [ad, e-posta, telefon, açılış bakiyesi, bölge anahtarı]
+        // Müşteriler: [ad, e-posta, telefon, bölge anahtarı] — bakiye kavramı yok, ödeme provizyonla
         $customers = [
-            ['Gencer Ger', 'gencer@bizsim.com', '+90 555 111 2233', 2000, 'akyaka'],
-            ['Selin Ak', 'selin@example.com', '+90 555 222 3344', 1000, 'gokova'],
-            ['Barış Tan', 'baris@example.com', '+90 555 333 4455', 1000, 'akcapinar'],
-            ['Elif Demir', 'elif@example.com', '+90 555 444 5566', 1000, 'akyaka'],
-            ['Can Polat', 'can@example.com', '+90 555 555 6677', 1000, 'gokova'],
+            ['Gencer Ger', 'gencer@bizsim.com', '+90 555 111 2233', 'akyaka'],
+            ['Selin Ak', 'selin@example.com', '+90 555 222 3344', 'gokova'],
+            ['Barış Tan', 'baris@example.com', '+90 555 333 4455', 'akcapinar'],
+            ['Elif Demir', 'elif@example.com', '+90 555 444 5566', 'akyaka'],
+            ['Can Polat', 'can@example.com', '+90 555 555 6677', 'gokova'],
         ];
-        foreach ($customers as [$name, $email, $phone, $topup, $zoneKey]) {
-            $user = $this->makeUser($name, $email, UserRole::Customer, $phone);
-            $this->setupCustomer($user, (float) $topup, $zoneKey);
+        foreach ($customers as [$name, $email, $phone, $zoneKey]) {
+            $this->setupCustomer($this->makeUser($name, $email, UserRole::Customer, $phone), $zoneKey);
         }
     }
 
@@ -65,18 +62,8 @@ class UserSeeder extends Seeder
         return $user;
     }
 
-    private function setupCustomer(User $user, float $topup, string $zoneKey): void
+    private function setupCustomer(User $user, string $zoneKey): void
     {
-        $wallet = Wallet::updateOrCreate(
-            ['user_id' => $user->id],
-            ['balance' => 0, 'reserved' => 0, 'currency' => 'TRY'],
-        );
-
-        // Açılış bakiyesi — deftere yükleme olarak yazılır (yalnızca ilk kez)
-        if ($topup > 0 && $wallet->transactions()->doesntExist()) {
-            $wallet->recordTransaction(TransactionType::TopUp, $topup, 0, null, 'Açılış bakiyesi');
-        }
-
         $zone = Zone::where('key', $zoneKey)->first();
         Address::updateOrCreate(
             ['user_id' => $user->id, 'label' => 'Ev'],
