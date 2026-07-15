@@ -25,9 +25,9 @@ const money = (n) => Number(n).toLocaleString('tr-TR');
             </div>
 
             <div class="stats" style="grid-template-columns:repeat(3,1fr)">
-                <div class="stat"><div class="k">🔒 Açık provizyon</div><div class="v">{{ money(summary.open) }} <small>TL</small></div></div>
-                <div class="stat"><div class="k">💳 Toplam tahsil</div><div class="v">{{ money(summary.captured) }} <small>TL</small></div></div>
-                <div class="stat"><div class="k">↩︎ Sana bırakılan</div><div class="v">{{ money(summary.released) }} <small>TL</small></div></div>
+                <div class="stat stat--tint-orange"><div class="k">🔒 Açık provizyon</div><div class="v">{{ money(summary.open) }} <small>TL</small></div></div>
+                <div class="stat stat--tint-red"><div class="k">💳 Toplam tahsil</div><div class="v">{{ money(summary.captured) }} <small>TL</small></div></div>
+                <div class="stat stat--tint-green"><div class="k">↩︎ Sana bırakılan</div><div class="v">{{ money(summary.released) }} <small>TL</small></div></div>
             </div>
 
             <div class="tablewrap">

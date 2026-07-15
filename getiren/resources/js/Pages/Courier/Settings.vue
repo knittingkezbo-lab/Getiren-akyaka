@@ -59,105 +59,103 @@ const savePassword = () =>
                 </div>
             </div>
 
-            <!-- hesap bilgileri -->
-            <div class="card">
-                <div class="card__head"><div><p class="eyebrow">Kişisel bilgiler</p><h2>Hesap bilgilerin</h2></div></div>
-                <div class="form-grid">
-                    <div class="field" :class="{ 'field--error': infoForm.errors.name }">
-                        <label class="label">Ad Soyad</label>
-                        <input class="input" v-model="infoForm.name" />
-                        <p v-if="infoForm.errors.name" class="error-text">⚠ {{ infoForm.errors.name }}</p>
+            <!-- hesap bilgileri + banka -->
+            <div class="grid cols-2" style="align-items:start; gap:20px">
+                <div class="card">
+                    <div class="card__head"><div><p class="eyebrow">Kişisel bilgiler</p><h2>Hesap bilgilerin</h2></div></div>
+                    <div class="stack" style="gap:0">
+                        <div class="field" :class="{ 'field--error': infoForm.errors.name }">
+                            <label class="label">Ad Soyad</label>
+                            <input class="input" v-model="infoForm.name" />
+                            <p v-if="infoForm.errors.name" class="error-text">⚠ {{ infoForm.errors.name }}</p>
+                        </div>
+                        <div class="field">
+                            <label class="label">Telefon</label>
+                            <div class="input-group"><span class="addon">+90</span><input class="input" v-model="infoForm.phone" /></div>
+                        </div>
+                        <div class="field" :class="{ 'field--error': infoForm.errors.email }">
+                            <label class="label">E-posta</label>
+                            <div class="input-icon"><span class="ic">✉</span><input class="input" v-model="infoForm.email" /></div>
+                            <p v-if="infoForm.errors.email" class="error-text">⚠ {{ infoForm.errors.email }}</p>
+                        </div>
                     </div>
-                    <div class="field">
-                        <label class="label">Telefon</label>
-                        <div class="input-group"><span class="addon">+90</span><input class="input" v-model="infoForm.phone" /></div>
-                    </div>
-                    <div class="field full" :class="{ 'field--error': infoForm.errors.email }">
-                        <label class="label">E-posta</label>
-                        <div class="input-icon"><span class="ic">✉</span><input class="input" v-model="infoForm.email" /></div>
-                        <p v-if="infoForm.errors.email" class="error-text">⚠ {{ infoForm.errors.email }}</p>
-                    </div>
+                    <div class="row"><button class="btn btn--primary" :disabled="infoForm.processing" @click="saveInfo">{{ infoForm.processing ? 'Kaydediliyor…' : 'Kaydet' }}</button></div>
                 </div>
-                <div class="row"><button class="btn btn--primary" :disabled="infoForm.processing" @click="saveInfo">{{ infoForm.processing ? 'Kaydediliyor…' : 'Kaydet' }}</button></div>
-            </div>
 
-            <!-- banka bilgileri (kazanç / çekim) -->
-            <div class="card">
-                <div class="card__head"><div><p class="eyebrow">Banka bilgileri</p><h2>Kazanç / çekim hesabı</h2></div></div>
-                <div class="alert alert--info" style="margin-bottom:14px">
-                    <span class="alert__ic">ℹ</span>
-                    <div>Hizmet bedeli ödemeleri ve bakiye çekimi için kullanılır. Bilgilerin yalnızca sana gösterilir; kart bilgisi istemeyiz.</div>
-                </div>
-                <div class="form-grid">
-                    <div class="field full" :class="{ 'field--error': bankForm.errors.iban }">
+                <div class="card">
+                    <div class="card__head"><div><p class="eyebrow">Banka bilgileri</p><h2>Kazanç / çekim hesabı</h2></div></div>
+                    <div class="alert alert--info" style="margin-bottom:14px">
+                        <span class="alert__ic">ℹ</span>
+                        <div>Hizmet bedeli ödemeleri ve bakiye çekimi için kullanılır. Bilgilerin yalnızca sana gösterilir; kart bilgisi istemeyiz.</div>
+                    </div>
+                    <div class="field" :class="{ 'field--error': bankForm.errors.iban }">
                         <label class="label">IBAN</label>
                         <input class="input" v-model="bankForm.iban" @blur="formatIban" placeholder="TR00 0000 0000 0000 0000 0000 00" autocomplete="off" spellcheck="false" />
                         <p v-if="bankForm.errors.iban" class="error-text">⚠ {{ bankForm.errors.iban }}</p>
                     </div>
-                    <div class="field full">
+                    <div class="field">
                         <label class="label">Hesap sahibi</label>
                         <input class="input" v-model="bankForm.iban_holder" placeholder="Ad Soyad" />
                     </div>
+                    <div class="row"><button class="btn btn--primary" :disabled="bankForm.processing" @click="saveBank">{{ bankForm.processing ? 'Kaydediliyor…' : 'Banka bilgilerini kaydet' }}</button></div>
                 </div>
-                <div class="row"><button class="btn btn--primary" :disabled="bankForm.processing" @click="saveBank">{{ bankForm.processing ? 'Kaydediliyor…' : 'Banka bilgilerini kaydet' }}</button></div>
             </div>
 
-            <!-- bildirim tercihleri -->
-            <div class="card">
-                <div class="card__head"><div><p class="eyebrow">Bildirimler</p><h2>Bildirim tercihleri</h2></div></div>
-                <div class="pref">
-                    <div class="pref__text">
-                        <b>E-posta bildirimleri</b>
-                        <small class="muted">İş atama ve iptallerde e-posta al.</small>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" v-model="notifyForm.notify_email" />
-                        <span class="switch__slider"></span>
-                    </label>
-                </div>
-                <div class="pref">
-                    <div class="pref__text">
-                        <b>Uygulama içi bildirimler</b>
-                        <small class="muted">Zil simgesinde anlık bildirim göster.</small>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" v-model="notifyForm.notify_web" />
-                        <span class="switch__slider"></span>
-                    </label>
-                </div>
-
-                <div class="events">
-                    <p class="events__title">Hangi durumlarda haber verelim?</p>
-                    <p class="muted" style="font-size:13px; margin:0 0 4px">Kapattığın olaylar için ne e-posta ne de zil bildirimi gönderilir.</p>
-                    <label v-for="ev in eventList" :key="ev.key" class="event">
-                        <span class="event__text"><b>{{ ev.label }}</b><small class="muted">{{ ev.hint }}</small></span>
-                        <span class="switch">
-                            <input type="checkbox" v-model="notifyForm.events[ev.key]" />
+            <!-- bildirim tercihleri + şifre -->
+            <div class="grid cols-2" style="align-items:start; gap:20px">
+                <div class="card">
+                    <div class="card__head"><div><p class="eyebrow">Bildirimler</p><h2>Bildirim tercihleri</h2></div></div>
+                    <div class="pref">
+                        <div class="pref__text">
+                            <b>E-posta bildirimleri</b>
+                            <small class="muted">İş atama ve iptallerde e-posta al.</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" v-model="notifyForm.notify_email" />
                             <span class="switch__slider"></span>
-                        </span>
-                    </label>
+                        </label>
+                    </div>
+                    <div class="pref">
+                        <div class="pref__text">
+                            <b>Uygulama içi bildirimler</b>
+                            <small class="muted">Zil simgesinde anlık bildirim göster.</small>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" v-model="notifyForm.notify_web" />
+                            <span class="switch__slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="events">
+                        <p class="events__title">Hangi durumlarda haber verelim?</p>
+                        <p class="muted" style="font-size:13px; margin:0 0 4px">Kapattığın olaylar için ne e-posta ne de zil bildirimi gönderilir.</p>
+                        <label v-for="ev in eventList" :key="ev.key" class="event">
+                            <span class="event__text"><b>{{ ev.label }}</b><small class="muted">{{ ev.hint }}</small></span>
+                            <span class="switch">
+                                <input type="checkbox" v-model="notifyForm.events[ev.key]" />
+                                <span class="switch__slider"></span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="row"><button class="btn btn--primary" :disabled="notifyForm.processing" @click="saveNotifications">{{ notifyForm.processing ? 'Kaydediliyor…' : 'Tercihleri kaydet' }}</button></div>
                 </div>
 
-                <div class="row"><button class="btn btn--primary" :disabled="notifyForm.processing" @click="saveNotifications">{{ notifyForm.processing ? 'Kaydediliyor…' : 'Tercihleri kaydet' }}</button></div>
-            </div>
-
-            <!-- güvenlik -->
-            <div class="card">
-                <div class="card__head"><div><p class="eyebrow">Güvenlik</p><h2>Şifre değiştir</h2></div></div>
-                <div class="field" style="max-width:420px" :class="{ 'field--error': passwordForm.errors.current_password }">
-                    <label class="label">Mevcut şifre</label>
-                    <input class="input" type="password" v-model="passwordForm.current_password" />
-                    <p v-if="passwordForm.errors.current_password" class="error-text">⚠ {{ passwordForm.errors.current_password }}</p>
-                </div>
-                <div class="form-grid" style="max-width:860px">
+                <div class="card">
+                    <div class="card__head"><div><p class="eyebrow">Güvenlik</p><h2>Şifre değiştir</h2></div></div>
+                    <div class="field" :class="{ 'field--error': passwordForm.errors.current_password }">
+                        <label class="label">Mevcut şifre</label>
+                        <input class="input" type="password" v-model="passwordForm.current_password" />
+                        <p v-if="passwordForm.errors.current_password" class="error-text">⚠ {{ passwordForm.errors.current_password }}</p>
+                    </div>
                     <div class="field" :class="{ 'field--error': passwordForm.errors.password }">
                         <label class="label">Yeni şifre</label>
                         <input class="input" type="password" v-model="passwordForm.password" />
                         <p v-if="passwordForm.errors.password" class="error-text">⚠ {{ passwordForm.errors.password }}</p>
                     </div>
                     <div class="field"><label class="label">Yeni şifre tekrar</label><input class="input" type="password" v-model="passwordForm.password_confirmation" /></div>
+                    <div class="row"><button class="btn btn--primary" :disabled="passwordForm.processing" @click="savePassword">{{ passwordForm.processing ? 'Kaydediliyor…' : 'Şifreyi değiştir' }}</button></div>
                 </div>
-                <div class="row"><button class="btn btn--primary" :disabled="passwordForm.processing" @click="savePassword">{{ passwordForm.processing ? 'Kaydediliyor…' : 'Şifreyi değiştir' }}</button></div>
             </div>
         </div>
     </AppLayout>

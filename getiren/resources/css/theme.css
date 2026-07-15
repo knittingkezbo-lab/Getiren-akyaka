@@ -167,6 +167,13 @@ p{margin:0}
 .stat--primary .k{color:#ffe6da}
 .stat--plum{background:linear-gradient(150deg,var(--plum),#95627f); color:#fff; border:0}
 .stat--plum .k{color:#f0dbe7}
+/* yumuşak para-akışı tonları — açık provizyon (turuncu) · tahsil (kırmızı) · iade (yeşil) */
+.stat--tint-orange{background:var(--primary-soft); border-color:#f4d3c6}
+.stat--tint-orange .v{color:var(--primary-2)}
+.stat--tint-red{background:var(--danger-soft); border-color:#f1cabf}
+.stat--tint-red .v{color:var(--danger)}
+.stat--tint-green{background:var(--sage-soft); border-color:#cfe1c8}
+.stat--tint-green .v{color:#3f5c42}
 
 /* ---------- Ticket / receipt (özgün motif) ---------- */
 .ticket{position:relative; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:18px 20px; box-shadow:var(--shadow-sm)}

@@ -19,14 +19,14 @@ enum AuthorizationStatus: string
         };
     }
 
-    /** Rozet rengi (badge--*). */
+    /** Rozet rengi (badge--*) — para-akışı dili: provizyon turuncu · tahsil kırmızı · iade yeşil. */
     public function tone(): string
     {
         return match ($this) {
-            self::Authorized => 'amber',
-            self::Captured => 'sage',
-            self::Voided => 'muted',
-            self::Failed => 'danger',
+            self::Authorized => 'primary', // açık provizyon → turuncu
+            self::Captured => 'danger',    // tahsil edildi → kırmızı
+            self::Voided => 'sage',        // çözüldü/iade → yeşil
+            self::Failed => 'plum',        // reddedildi → mor (tahsil kırmızısıyla karışmasın)
         };
     }
 }

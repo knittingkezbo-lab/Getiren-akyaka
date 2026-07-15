@@ -48,21 +48,27 @@ const badgeClass = (status) =>
         </template>
 
         <div class="stack" style="gap:20px">
-            <!-- hero CTA -->
-            <Link
-                href="/musteri/siparis/yeni"
-                class="card"
-                style="background:linear-gradient(150deg,var(--primary),#e6863f); color:#fff; border:0; text-decoration:none; display:block"
-            >
-                <div class="spread" style="align-items:center; flex-wrap:wrap; gap:16px">
-                    <div style="max-width:44ch">
-                        <p class="eyebrow" style="color:#ffe1cf">Yeni sipariş</p>
-                        <h2 style="color:#fff; font-size:27px; margin:4px 0 6px">Ne lazımsa yaz, gerisini bize bırak.</h2>
-                        <p style="color:#ffe7d8">Tutarı provizyona alırız, gerçek fişe göre keser, fazlasını iade ederiz.</p>
-                    </div>
-                    <span class="btn" style="background:#fff; color:var(--primary-2)">Sipariş oluştur →</span>
+            <!-- üst sıra: solda yeni sipariş CTA, sağda para-akışı kartları -->
+            <div class="grid cols-2" style="align-items:stretch">
+                <!-- hero CTA -->
+                <Link
+                    href="/musteri/siparis/yeni"
+                    class="card hero-cta"
+                    style="background:linear-gradient(150deg,var(--primary),#e6863f); color:#fff; border:0; text-decoration:none; display:flex; flex-direction:column; justify-content:center"
+                >
+                    <p class="eyebrow" style="color:#ffe1cf">Yeni sipariş</p>
+                    <h2 style="color:#fff; font-size:26px; margin:4px 0 6px">Ne lazımsa yaz, gerisini bize bırak.</h2>
+                    <p style="color:#ffe7d8; margin-bottom:16px">Tutarı provizyona alırız, gerçek fişe göre keser, fazlasını iade ederiz.</p>
+                    <span class="btn" style="background:#fff; color:var(--primary-2); align-self:flex-start">Sipariş oluştur →</span>
+                </Link>
+
+                <!-- istatistikler (sağ sütun, alt alta) -->
+                <div class="stack" style="gap:16px">
+                    <div class="stat stat--tint-orange"><div class="k">🔒 Açık provizyon</div><div class="v">{{ money(stats.open_authorized) }} <small>TL</small></div></div>
+                    <div class="stat stat--tint-red"><div class="k">💳 Bu ay ödenen</div><div class="v">{{ money(stats.month_captured) }} <small>TL</small></div></div>
+                    <div class="stat stat--tint-green"><div class="k">📦 Bu ay</div><div class="v">{{ stats.month_count }} <small>sipariş</small></div></div>
                 </div>
-            </Link>
+            </div>
 
             <!-- aktif sipariş -->
             <div v-if="activeOrder" class="card">
@@ -96,13 +102,6 @@ const badgeClass = (status) =>
                 <h3 style="margin:8px 0 4px">Aktif siparişin yok</h3>
                 <p class="muted">Yeni bir sipariş oluşturarak başla.</p>
                 <Link class="btn btn--primary btn--sm" href="/musteri/siparis/yeni" style="margin-top:12px">Sipariş oluştur</Link>
-            </div>
-
-            <!-- istatistikler -->
-            <div class="stats">
-                <div class="stat"><div class="k">🔒 Açık provizyon</div><div class="v">{{ money(stats.open_authorized) }} <small>TL</small></div></div>
-                <div class="stat"><div class="k">💳 Bu ay ödenen</div><div class="v">{{ money(stats.month_captured) }} <small>TL</small></div></div>
-                <div class="stat"><div class="k">📦 Bu ay</div><div class="v">{{ stats.month_count }} <small>sipariş</small></div></div>
             </div>
 
             <!-- son siparişler -->
