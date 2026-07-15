@@ -5,6 +5,7 @@ defineProps({
     slug: { type: String, required: true },
     doc: { type: Object, required: true },
     nav: { type: Array, default: () => [] },
+    draft: { type: Boolean, default: true },
 });
 </script>
 
@@ -28,7 +29,7 @@ defineProps({
             </aside>
 
             <main class="legal__main">
-                <div class="legal__draft">⚠ Bu metin <b>taslaktır</b> ve hukuki onay sürecindedir. Nihai metinler yürürlüğe girince güncellenecektir.</div>
+                <div v-if="draft" class="legal__draft">⚠ Bu metin <b>taslaktır</b> ve hukuki onay sürecindedir. Nihai metinler yürürlüğe girince güncellenecektir.</div>
                 <h1>{{ doc.title }}</h1>
 
                 <section v-for="(b, i) in doc.blocks" :key="i" class="legal__block">

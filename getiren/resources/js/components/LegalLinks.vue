@@ -1,10 +1,12 @@
 <script setup>
 const links = [
     { href: '/hukuki/kullanim-sartlari', label: 'Kullanım Şartları' },
-    { href: '/hukuki/kvkk', label: 'KVKK' },
-    { href: '/hukuki/gizlilik', label: 'Gizlilik' },
+    { href: '/hukuki/mesafeli-sozlesme', label: 'Mesafeli Sözleşme' },
+    { href: '/hukuki/teslimat', label: 'Teslimat' },
     { href: '/hukuki/iptal-iade', label: 'İptal/İade' },
     { href: '/hukuki/yasakli-urunler', label: 'Yasaklı Ürünler' },
+    { href: '/hukuki/kvkk', label: 'KVKK' },
+    { href: '/hukuki/gizlilik', label: 'Gizlilik' },
     { href: '/hukuki/iletisim', label: 'İletişim' },
 ];
 </script>

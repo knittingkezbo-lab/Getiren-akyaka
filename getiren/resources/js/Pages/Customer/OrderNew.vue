@@ -189,7 +189,7 @@ const pickSuggestion = (kw) => {
                     <label class="terms-check" :class="{ 'terms-check--error': form.errors.terms_accepted }">
                         <input type="checkbox" v-model="form.terms_accepted" />
                         <span>
-                            <a href="/hukuki/kullanim-sartlari" target="_blank" rel="noopener">Ön bilgilendirme ve kullanım şartlarını</a>
+                            <a href="/hukuki/mesafeli-sozlesme" target="_blank" rel="noopener">Ön bilgilendirme ve mesafeli hizmet sözleşmesini</a>
                             okudum; ürün bedelinin tahmini olduğunu, gerçek fişe göre kesinleşeceğini ve siparişin ödeme yükümlülüğü doğurduğunu kabul ediyorum.
                         </span>
                     </label>
