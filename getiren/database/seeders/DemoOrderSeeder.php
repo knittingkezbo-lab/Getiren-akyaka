@@ -13,6 +13,11 @@ class DemoOrderSeeder extends Seeder
 {
     public function run(PaymentGateway $gateway): void
     {
+        // Güvenlik: demo veri üretime asla girmez (doğrudan çağrılsa bile)
+        if (app()->environment('production')) {
+            return;
+        }
+
         // Idempotent: demo siparişleri zaten varsa çık
         if (Order::where('code', 'A24-116')->exists()) {
             return;

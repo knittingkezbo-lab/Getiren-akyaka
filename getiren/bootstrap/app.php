@@ -28,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Giriş yapmış kullanıcı misafir sayfalarına (login/register) gelirse
         $middleware->redirectUsersTo('/');
+
+        // PayTR callback'i dış sunucudan gelir; CSRF token taşımaz
+        $middleware->validateCsrfTokens(except: [
+            'odeme/paytr/geri-bildirim',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -13,6 +13,11 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        // Güvenlik: demo hesaplar üretime asla girmez (üretimde AdminSeeder kullanılır)
+        if (app()->environment('production')) {
+            return;
+        }
+
         // Yönetici
         $this->makeUser('Ayşe Yılmaz', 'admin@getiren.test', UserRole::Admin, '+90 555 000 0001');
 

@@ -46,12 +46,12 @@ const submit = () =>
                     <div class="form-grid">
                         <div class="field" :class="{ 'field--error': form.errors.first_name }">
                             <label class="label">Ad <span class="req">*</span></label>
-                            <input v-model="form.first_name" class="input" type="text" placeholder="Gencer" autofocus />
+                            <input v-model="form.first_name" class="input" type="text" placeholder="Adınız" autofocus />
                             <p v-if="form.errors.first_name" class="error-text">⚠ {{ form.errors.first_name }}</p>
                         </div>
                         <div class="field" :class="{ 'field--error': form.errors.last_name }">
                             <label class="label">Soyad <span class="req">*</span></label>
-                            <input v-model="form.last_name" class="input" type="text" placeholder="Ger" />
+                            <input v-model="form.last_name" class="input" type="text" placeholder="Soyadınız" />
                             <p v-if="form.errors.last_name" class="error-text">⚠ {{ form.errors.last_name }}</p>
                         </div>
                     </div>

@@ -4,8 +4,8 @@ import { onMounted, ref } from 'vue';
 import LegalLinks from '@/components/LegalLinks.vue';
 
 const form = useForm({
-    email: 'gencer@bizsim.com',
-    password: 'password',
+    email: '',
+    password: '',
     remember: true,
 });
 

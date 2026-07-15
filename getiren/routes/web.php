@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentCallbackController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboard;
@@ -21,6 +22,9 @@ use Inertia\Inertia;
 
 // Hukuki sayfalar — herkese açık (auth/guest fark etmez)
 Route::get('/hukuki/{page}', [LegalController::class, 'show'])->name('legal.show');
+
+// PayTR ödeme callback'i (sunucudan sunucuya POST) — CSRF muaf (bootstrap/app.php'de)
+Route::post('/odeme/paytr/geri-bildirim', [PaymentCallbackController::class, 'paytr'])->name('payment.paytr.callback');
 
 // Misafir (giriş yapmamış) rotaları
 Route::middleware('guest')->group(function () {
