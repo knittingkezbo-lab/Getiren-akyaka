@@ -37,8 +37,9 @@ class OrderNotification extends Notification
             default => true,
         }));
 
-        // Web (database) bildirimi gidiyorsa canlı push'u (broadcast) da ekle — aynı notify_web kuralına tabi
-        if (in_array('database', $channels, true)) {
+        // Canlı güncelleme açıksa ve web bildirimi gidiyorsa anlık push'u (broadcast) da ekle.
+        // Reverb'siz (LIVE_UPDATES=false) başlarken bu atlanır; bildirim yine DB + e-postaya gider.
+        if (config('features.live_updates') && in_array('database', $channels, true)) {
             $channels[] = 'broadcast';
         }
 
