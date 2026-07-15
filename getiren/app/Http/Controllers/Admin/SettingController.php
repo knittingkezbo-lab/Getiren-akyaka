@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\PriceHint;
 use App\Models\Setting;
 use App\Models\Zone;
+use App\Support\Company;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,26 @@ class SettingController extends Controller
         'auto_assign_courier' => 'Otomatik kurye atama',
     ];
 
+    /** Şirket bilgisi alanlarının Türkçe adları (denetim kaydı için). */
+    private const COMPANY_LABELS = [
+        'name' => 'Marka adı',
+        'legal_name' => 'İşletme unvanı',
+        'owner' => 'İşletme sahibi',
+        'type' => 'İşletme türü',
+        'tax_office' => 'Vergi dairesi',
+        'tax_no' => 'Vergi/TC no',
+        'mersis' => 'MERSİS',
+        'etbis' => 'ETBİS',
+        'nace' => 'NACE',
+        'address' => 'Adres',
+        'phone' => 'Telefon',
+        'email' => 'E-posta',
+        'kep' => 'KEP',
+        'website' => 'Web',
+        'hours' => 'Çalışma saatleri',
+        'service_areas' => 'Hizmet bölgeleri',
+    ];
+
     public function index(): Response
     {
         return Inertia::render('Admin/Settings', [
@@ -35,6 +56,8 @@ class SettingController extends Controller
                 'auto_assign_courier' => (bool) Setting::get('auto_assign_courier', 0),
             ],
             'priceHints' => PriceHint::orderBy('keyword')->get(['id', 'keyword', 'category', 'unit_price']),
+            'company' => Company::all(),
+            'legalDraft' => Company::draft(),
         ]);
     }
 
@@ -52,6 +75,9 @@ class SettingController extends Controller
             'priceHints' => ['array'],
             'priceHints.*.id' => ['required', 'integer', 'exists:price_hints,id'],
             'priceHints.*.unit_price' => ['required', 'numeric', 'min:0', 'max:100000'],
+            'company' => ['array'],
+            'company.*' => ['nullable', 'string', 'max:255'],
+            'legal_draft' => ['boolean'],
         ]);
 
         DB::transaction(function () use ($data) {
@@ -83,6 +109,28 @@ class SettingController extends Controller
                 Setting::put($key, $value);
             }
 
+            // Şirket bilgisi: yalnızca değişen alanı DB'ye yaz (yoksa env yedeği geçerli kalır)
+            foreach (self::COMPANY_LABELS as $key => $label) {
+                if (! array_key_exists($key, $data['company'] ?? [])) {
+                    continue;
+                }
+
+                $new = trim((string) ($data['company'][$key] ?? ''));
+
+                if ($this->diff($changes, "Şirket · {$label}", Company::get($key), $new)) {
+                    Setting::put("company_{$key}", $new);
+                }
+            }
+
+            // Hukuki metin taslak bandı (avukat bitince kapatılır)
+            if (array_key_exists('legal_draft', $data)) {
+                $newDraft = (bool) $data['legal_draft'];
+
+                if ($this->diff($changes, 'Hukuki metin taslak bandı', Company::draft(), $newDraft)) {
+                    Setting::put('company_legal_draft', $newDraft ? 1 : 0);
+                }
+            }
+
             // Değişen bir şey yoksa kayıt açma — boş "Kaydet" tıklamaları denetim kaydını kirletmesin
             if ($changes !== []) {
                 AuditLog::record(
@@ -98,15 +146,17 @@ class SettingController extends Controller
         return back()->with('success', 'Ayarlar kaydedildi.');
     }
 
-    /** Değer gerçekten değiştiyse eski→yeni farkını biriktir. */
-    private function diff(array &$changes, string $label, mixed $old, mixed $new): void
+    /** Değer gerçekten değiştiyse eski→yeni farkını biriktir. Değişti mi döndürür. */
+    private function diff(array &$changes, string $label, mixed $old, mixed $new): bool
     {
         $normalize = fn (mixed $v) => is_bool($v) ? (string) (int) $v : (string) $v;
 
         if ($normalize($old) === $normalize($new)) {
-            return;
+            return false;
         }
 
         $changes[$label] = ['eski' => $old, 'yeni' => $new];
+
+        return true;
     }
 }

@@ -6,9 +6,32 @@ const props = defineProps({
     zones: { type: Array, default: () => [] },
     settings: { type: Object, required: true },
     priceHints: { type: Array, default: () => [] },
+    company: { type: Object, default: () => ({}) },
+    legalDraft: { type: Boolean, default: true },
 });
 
 const money = (n) => Number(n).toLocaleString('tr-TR');
+
+// Şirket bilgisi alanları — hukuki sayfalar + iletişim bunları kullanır
+const companyFields = [
+    { key: 'legal_name', label: 'İşletme unvanı', hint: 'Şahıs işletmesinde ad soyad veya ticari ad' },
+    { key: 'owner', label: 'İşletme sahibi' },
+    { key: 'type', label: 'İşletme türü' },
+    { key: 'tax_office', label: 'Vergi dairesi' },
+    { key: 'tax_no', label: 'Vergi / TC no', hint: 'PayTR onayına kadar açık; sonra boşaltarak gizleyebilirsin' },
+    { key: 'mersis', label: 'MERSİS (varsa)' },
+    { key: 'etbis', label: 'ETBİS (yayına girince)' },
+    { key: 'nace', label: 'NACE / faaliyet' },
+    { key: 'phone', label: 'Telefon' },
+    { key: 'email', label: 'E-posta' },
+    { key: 'kep', label: 'KEP (varsa)' },
+    { key: 'website', label: 'Web adresi' },
+    { key: 'hours', label: 'Hizmet saatleri', hint: 'Teslimat ve sözleşme sayfalarında görünür' },
+    { key: 'address', label: 'Açık adres', full: true },
+    { key: 'service_areas', label: 'Hizmet bölgeleri', full: true },
+];
+
+const buildCompany = () => Object.fromEntries(companyFields.map((f) => [f.key, props.company[f.key] ?? '']));
 
 const form = useForm({
     zones: props.zones.map((z) => ({ id: z.id, name: z.name, service_fee: Number(z.service_fee), is_active: !!z.is_active })),
@@ -19,6 +42,8 @@ const form = useForm({
         auto_assign_courier: !!props.settings.auto_assign_courier,
     },
     priceHints: props.priceHints.map((p) => ({ id: p.id, keyword: p.keyword, category: p.category, unit_price: Number(p.unit_price) })),
+    company: buildCompany(),
+    legal_draft: props.legalDraft,
 });
 
 const save = () => form.post('/yonetici/ayarlar', { preserveScroll: true });
@@ -73,6 +98,29 @@ const save = () => form.post('/yonetici/ayarlar', { preserveScroll: true });
                         <span class="alert__ic">ℹ</span>
                         <div>400 TL ürün → <b>{{ Math.ceil((400 * form.settings.safety_buffer_pct) / 100) }} TL</b> güvenlik payı provizyona eklenir. Asgari ürün tutarı: <b>{{ money(form.settings.min_order_total) }} TL</b>.</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- şirket bilgileri -->
+            <div class="card">
+                <div class="card__head"><div><p class="eyebrow">İşletme</p><h2>Şirket bilgileri</h2></div></div>
+                <div class="alert alert--info" style="margin-bottom:16px">
+                    <span class="alert__ic">ℹ</span>
+                    <div>Bu bilgiler hukuki sayfalar ve İletişim sayfasında görünür. Bir alanı boş bırakırsan sayfada gizlenir (vergi no'yu daha sonra gizlemek için boşaltman yeterli).</div>
+                </div>
+                <div class="form-grid">
+                    <div v-for="f in companyFields" :key="f.key" class="field" :class="{ full: f.full }">
+                        <label class="label">{{ f.label }}</label>
+                        <input class="input" v-model="form.company[f.key]" :placeholder="f.hint || ''" autocomplete="off" />
+                        <p v-if="f.hint" class="hint" style="margin-top:5px">{{ f.hint }}</p>
+                    </div>
+                </div>
+                <div class="list__row" style="margin-top:8px">
+                    <div>
+                        <b>Hukuki metinler taslak</b>
+                        <p class="hint" style="margin-top:2px">Açıkken sayfaların üstünde "taslak" uyarısı görünür. Avukat metinleri onaylayınca kapat.</p>
+                    </div>
+                    <label class="switch"><input type="checkbox" v-model="form.legal_draft" /><span class="track"></span></label>
                 </div>
             </div>
 

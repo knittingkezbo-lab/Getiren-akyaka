@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Company;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,7 +16,7 @@ class LegalController extends Controller
         return Inertia::render('Legal/Show', [
             'slug' => $page,
             'doc' => $pages[$page],
-            'draft' => (bool) config('company.legal_draft', true),
+            'draft' => Company::draft(),
             'nav' => collect($pages)->map(fn ($p, $slug) => [
                 'slug' => $slug,
                 'title' => $p['title'],
@@ -23,10 +24,10 @@ class LegalController extends Controller
         ]);
     }
 
-    /** config('company.*') değerini döndürür; boşsa neyin eksik olduğunu gösteren yer tutucu. */
+    /** Şirket bilgisi (DB override → env). Boşsa neyin eksik olduğunu gösteren yer tutucu. */
     private function co(string $key, string $missing): string
     {
-        $value = trim((string) config("company.{$key}"));
+        $value = Company::get($key);
 
         return $value !== '' ? $value : $missing;
     }
@@ -48,6 +49,11 @@ class LegalController extends Controller
         $taxNo = $this->co('tax_no', '[Vergi/TC no]');
         $areas = $this->co('service_areas', 'Akyaka, Gökova, Akçapınar');
         $hours = $this->co('hours', '[Çalışma saatleri]');
+        $type = Company::get('type');
+        $mersis = Company::get('mersis');
+        $nace = Company::get('nace');
+        $kep = Company::get('kep');
+        $etbis = Company::get('etbis');
 
         return [
             'kullanim-sartlari' => [
@@ -192,19 +198,19 @@ class LegalController extends Controller
                 'blocks' => [
                     ['h' => 'İşletme', 'p' => array_values(array_filter([
                         $legalName,
-                        config('company.type') ? 'Tür: '.config('company.type') : null,
+                        $type !== '' ? 'Tür: '.$type : null,
                         "Vergi dairesi / no: {$taxOffice} / {$taxNo}",
-                        config('company.mersis') ? 'MERSİS: '.config('company.mersis') : null,
-                        config('company.nace') ? 'Faaliyet/NACE: '.config('company.nace') : null,
+                        $mersis !== '' ? 'MERSİS: '.$mersis : null,
+                        $nace !== '' ? 'Faaliyet/NACE: '.$nace : null,
                         "Adres: {$addr}",
                     ]))],
                     ['h' => 'İletişim', 'p' => array_values(array_filter([
                         "E-posta: {$email}",
                         "Telefon: {$phone}",
-                        config('company.kep') ? 'KEP: '.config('company.kep') : null,
+                        $kep !== '' ? 'KEP: '.$kep : null,
                         'Web: '.$this->co('website', 'getirenakyaka.com'),
-                        config('company.etbis')
-                            ? 'ETBİS: '.config('company.etbis')
+                        $etbis !== ''
+                            ? 'ETBİS: '.$etbis
                             : 'ETBİS kaydı, site yayına girdiğinde tamamlanıp burada belirtilecektir.',
                     ]))],
                 ],
