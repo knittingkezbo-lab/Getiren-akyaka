@@ -110,6 +110,32 @@ const pickSuggestion = (kw) => {
 
     <AppLayout title="Yeni sipariş" subtitle="Üç adımda hazır — acele etme, biz buradayız.">
 
+        <!-- Nasıl çalışır: "gördüğün tutarı ödemiyorsun" mesajı, karar anından ÖNCE -->
+        <div class="howto">
+            <div class="howto__lead">
+                <span class="howto__ic">💡</span>
+                <div>
+                    <b>Gördüğün tutar tahminidir — o parayı ödemiyorsun.</b>
+                    <p>Tahmini tutar kartında geçici olarak <b>provizyona</b> alınır. Alışveriş bitince
+                    <b>yalnızca gerçek fiş kadarı</b> tahsil edilir, fazlası sana geri bırakılır.</p>
+                </div>
+            </div>
+            <div class="howto__steps">
+                <div class="howto__step">
+                    <span class="howto__n">1</span>
+                    <div><b>Provizyon</b><small>Tahmini tutar geçici bloke — hesabından çekilmez</small></div>
+                </div>
+                <div class="howto__step">
+                    <span class="howto__n">2</span>
+                    <div><b>Gerçek fiş</b><small>Kurye alışverişi yapar, ödediği tutarı girer</small></div>
+                </div>
+                <div class="howto__step">
+                    <span class="howto__n">3</span>
+                    <div><b>Fazlası iade</b><small>Sadece fiş kadarı kesilir, kalan çözülür</small></div>
+                </div>
+            </div>
+        </div>
+
         <div class="grid col-wide" style="align-items:start">
             <!-- FORM -->
             <div class="card">
@@ -183,7 +209,7 @@ const pickSuggestion = (kw) => {
 
                     <div class="alert alert--info" style="margin-top:14px">
                         <span class="alert__ic">ℹ</span>
-                        <div>Getiren Akyaka ürün satıcısı değildir; ürünleri senin adına temin eder. Tutar <b>tahminidir</b>, gerçek fişe göre kesinleşir; fazlası iade edilir.</div>
+                        <div>Getiren Akyaka <b>ürün satıcısı değildir</b>; ürünleri senin adına temin eder. Ürünlerin satıcısı alışverişin yapıldığı işletmedir.</div>
                     </div>
 
                     <label class="terms-check" :class="{ 'terms-check--error': form.errors.terms_accepted }">
@@ -217,6 +243,21 @@ const pickSuggestion = (kw) => {
 </template>
 
 <style scoped>
+/* "Nasıl çalışır" banner — tutarın yüksek görünmesinden doğan tereddüdü baştan karşılar */
+.howto { background: var(--primary-soft); border: 1.5px solid #f3cdbe; border-radius: var(--r-lg); padding: 18px 20px; margin-bottom: 20px; }
+.howto__lead { display: flex; gap: 13px; align-items: flex-start; }
+.howto__ic { font-size: 20px; line-height: 1.2; flex: none; }
+/* yalnızca başlıktaki b blok olsun; paragraf içindeki vurgular satır içi kalmalı */
+.howto__lead > div > b { display: block; font-size: 15.5px; color: var(--primary-2); }
+.howto__lead p { margin: 3px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.55; max-width: 76ch; }
+.howto__lead p b { color: var(--primary-2); }
+.howto__steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.howto__step { display: flex; gap: 10px; align-items: flex-start; background: var(--surface); border-radius: var(--r-sm); padding: 10px 12px; }
+.howto__n { width: 22px; height: 22px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; flex: none; margin-top: 1px; }
+.howto__step b { display: block; font-size: 13.5px; }
+.howto__step small { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; line-height: 1.4; }
+@media (max-width: 720px) { .howto__steps { grid-template-columns: 1fr; } }
+
 .banned-note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
 .sug-wrap { position: relative; }
 .sug { position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; list-style: none; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); z-index: 20; max-height: 220px; overflow-y: auto; }
