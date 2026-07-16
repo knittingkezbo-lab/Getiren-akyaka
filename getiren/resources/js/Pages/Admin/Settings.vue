@@ -1,6 +1,7 @@
 <script setup>
 import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     zones: { type: Array, default: () => [] },
@@ -8,7 +9,24 @@ const props = defineProps({
     priceHints: { type: Array, default: () => [] },
     company: { type: Object, default: () => ({}) },
     legalDraft: { type: Boolean, default: true },
+    estimateStats: { type: Object, default: () => ({ count: 0 }) },
 });
+
+// Toplu fiyat içe aktarma — mağaza gezmeden hızlı başlangıç
+const importForm = useForm({ text: '' });
+const runImport = () =>
+    importForm.post('/yonetici/ayarlar/fiyat-ice-aktar', {
+        preserveScroll: true,
+        onSuccess: () => importForm.reset('text'),
+    });
+
+// Sözlük: kaynak/eskime bilgisi props'ta, düzenlenen kopyada değil — id ile eşle
+const hintMeta = (id) => props.priceHints.find((p) => p.id === id) ?? {};
+const onlyReview = ref(false);
+const reviewCount = computed(() => props.priceHints.filter((p) => p.needs_review).length);
+const visibleHints = computed(() =>
+    onlyReview.value ? form.priceHints.filter((p) => hintMeta(p.id).needs_review) : form.priceHints,
+);
 
 const money = (n) => Number(n).toLocaleString('tr-TR');
 
@@ -37,6 +55,8 @@ const form = useForm({
     zones: props.zones.map((z) => ({ id: z.id, name: z.name, service_fee: Number(z.service_fee), is_active: !!z.is_active })),
     settings: {
         safety_buffer_pct: Number(props.settings.safety_buffer_pct),
+        unknown_buffer_pct: Number(props.settings.unknown_buffer_pct),
+        fallback_item_price: Number(props.settings.fallback_item_price),
         min_order_total: Number(props.settings.min_order_total),
         accepting_orders: !!props.settings.accepting_orders,
         auto_assign_courier: !!props.settings.auto_assign_courier,
@@ -84,6 +104,16 @@ const save = () => form.post('/yonetici/ayarlar', { preserveScroll: true });
                     <div class="form-grid">
                         <div class="field"><label class="label">Güvenlik payı</label><div class="input-group"><input class="input" type="number" min="0" max="100" v-model.number="form.settings.safety_buffer_pct" /><span class="addon">%</span></div></div>
                         <div class="field"><label class="label">Min. sipariş tutarı</label><div class="input-group"><input class="input" type="number" min="0" v-model.number="form.settings.min_order_total" /><span class="addon">TL</span></div></div>
+                        <div class="field">
+                            <label class="label">Bilinmeyen kalem payı</label>
+                            <div class="input-group"><input class="input" type="number" min="0" max="200" v-model.number="form.settings.unknown_buffer_pct" /><span class="addon">%</span></div>
+                            <p class="hint" style="margin-top:5px">Tanımadığımız kalem varsa pay buna yükselir.</p>
+                        </div>
+                        <div class="field">
+                            <label class="label">Bilinmeyen kalem fiyatı</label>
+                            <div class="input-group"><input class="input" type="number" min="0" v-model.number="form.settings.fallback_item_price" /><span class="addon">TL</span></div>
+                            <p class="hint" style="margin-top:5px">Sözlükte olmayan kalemin varsayılan birim fiyatı.</p>
+                        </div>
                     </div>
                     <div class="stack-sm" style="margin-top:4px">
                         <div class="list__row"><div><b>Siparişleri kabul et</b><p class="hint" style="margin-top:2px">Kapatınca yeni sipariş alınmaz.</p></div><label class="switch"><input type="checkbox" v-model="form.settings.accepting_orders" /><span class="track"></span></label></div>
@@ -91,12 +121,29 @@ const save = () => form.post('/yonetici/ayarlar', { preserveScroll: true });
                     </div>
                 </div>
 
-                <!-- önizleme -->
+                <!-- tahmin isabeti (ölç ve ayarla) -->
                 <div class="card">
-                    <div class="card__head"><div><p class="eyebrow">Önizleme</p><h2>Örnek hesap</h2></div></div>
-                    <div class="alert alert--info">
+                    <div class="card__head"><div><p class="eyebrow">Ölç ve ayarla</p><h2>Tahmin isabeti</h2></div></div>
+                    <template v-if="estimateStats.count">
+                        <div class="stats" style="grid-template-columns:1fr 1fr; gap:12px">
+                            <div class="stat" :class="estimateStats.avg_deviation >= 0 ? 'stat--tint-green' : 'stat--tint-red'">
+                                <div class="k">Ortalama sapma</div>
+                                <div class="v">{{ estimateStats.avg_deviation > 0 ? '+' : '' }}{{ estimateStats.avg_deviation }} <small>%</small></div>
+                            </div>
+                            <div class="stat" :class="estimateStats.extra_rate > 15 ? 'stat--tint-red' : 'stat--tint-green'">
+                                <div class="k">Ek ödeme oranı</div>
+                                <div class="v">{{ estimateStats.extra_rate }} <small>%</small></div>
+                            </div>
+                        </div>
+                        <p class="hint" style="margin-top:10px">
+                            Son {{ estimateStats.count }} kapanan siparişte <b>tahmini ürün tutarı vs gerçek fiş</b>.
+                            Pozitif sapma iyidir (fazlası müşteriye çözülür). <b>Ek ödeme oranı yükseliyorsa payı artır</b> —
+                            az tahmin müşteriye sürtünme yaşatır.
+                        </p>
+                    </template>
+                    <div v-else class="alert alert--info">
                         <span class="alert__ic">ℹ</span>
-                        <div>400 TL ürün → <b>{{ Math.ceil((400 * form.settings.safety_buffer_pct) / 100) }} TL</b> güvenlik payı provizyona eklenir. Asgari ürün tutarı: <b>{{ money(form.settings.min_order_total) }} TL</b>.</div>
+                        <div>Henüz kapanmış sipariş yok. Kurye gerçek fiyatları girmeye başlayınca tahmin isabeti burada görünür ve payı <b>tahminle değil veriyle</b> ayarlarsın.</div>
                     </div>
                 </div>
             </div>
@@ -124,19 +171,60 @@ const save = () => form.post('/yonetici/ayarlar', { preserveScroll: true });
                 </div>
             </div>
 
+            <!-- toplu fiyat içe aktarma -->
+            <div class="card">
+                <div class="card__head"><div><p class="eyebrow">Hızlı başlangıç</p><h2>Toplu fiyat içe aktarma</h2></div></div>
+                <div class="alert alert--info" style="margin-bottom:14px">
+                    <span class="alert__ic">ℹ</span>
+                    <div>
+                        Her satıra bir kalem: <b>kelime; kategori; fiyat</b> (kategori isteğe bağlı).
+                        <b>Kuryenin girdiği gerçek fiyatlar korunur</b> — içe aktarma onları ezmez.
+                    </div>
+                </div>
+                <div class="field">
+                    <textarea
+                        class="textarea"
+                        rows="6"
+                        style="font-family:ui-monospace,monospace; font-size:13px"
+                        placeholder="süt; Market; 78&#10;ekmek; Fırın; 20&#10;yumurta; Market; 145"
+                        v-model="importForm.text"
+                    ></textarea>
+                    <p v-if="importForm.errors.text" class="error-text">⚠ {{ importForm.errors.text }}</p>
+                </div>
+                <div class="row">
+                    <button class="btn btn--primary" :disabled="importForm.processing || !importForm.text.trim()" @click="runImport">
+                        {{ importForm.processing ? 'Aktarılıyor…' : 'İçe aktar' }}
+                    </button>
+                </div>
+            </div>
+
             <!-- tahmin sözlüğü -->
             <div class="card">
-                <div class="card__head"><div><p class="eyebrow">Varsayılan fiyatlar</p><h2>Tahmin sözlüğü</h2></div></div>
-                <p class="muted" style="margin-bottom:14px">Serbest metindeki kelimeler bu tabloyla eşleşerek ön tahmini oluşturur.</p>
+                <div class="card__head">
+                    <div><p class="eyebrow">Varsayılan fiyatlar</p><h2>Tahmin sözlüğü</h2></div>
+                    <label class="check" style="font-size:13px">
+                        <input type="checkbox" v-model="onlyReview" />
+                        <span>Sadece gözden geçirilecekler ({{ reviewCount }})</span>
+                    </label>
+                </div>
+                <p class="muted" style="margin-bottom:14px">
+                    Serbest metindeki kelimeler bu tabloyla eşleşerek tahmini oluşturur.
+                    <b>Gerçek fiyat</b> etiketli olanlar sahadan öğrenildi — en güvenilir olanlar bunlar.
+                </p>
                 <div class="tablewrap">
                     <table class="tbl">
-                        <thead><tr><th>Anahtar kelime</th><th>Kategori</th><th class="num" style="width:190px">Birim fiyat</th></tr></thead>
+                        <thead><tr><th>Anahtar kelime</th><th>Kategori</th><th>Kaynak</th><th class="num" style="width:190px">Birim fiyat</th></tr></thead>
                         <tbody>
-                            <tr v-for="p in form.priceHints" :key="p.id">
+                            <tr v-for="p in visibleHints" :key="p.id">
                                 <td><b>{{ p.keyword }}</b></td>
                                 <td>{{ p.category }}</td>
+                                <td>
+                                    <span class="badge" :class="`badge--${hintMeta(p.id).tone}`">{{ hintMeta(p.id).source_label }}</span>
+                                    <span v-if="hintMeta(p.id).needs_review" class="badge badge--amber" style="margin-left:5px">gözden geçir</span>
+                                </td>
                                 <td class="num"><div class="input-group" style="width:150px; margin-left:auto"><input class="input" type="number" min="0" v-model.number="p.unit_price" /><span class="addon">TL</span></div></td>
                             </tr>
+                            <tr v-if="!visibleHints.length"><td colspan="4" class="muted" style="text-align:center; padding:20px">Gözden geçirilecek kalem yok 👌</td></tr>
                         </tbody>
                     </table>
                 </div>

@@ -109,6 +109,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/ayarlar', [AdminSettings::class, 'index'])->name('settings');
         Route::post('/ayarlar', [AdminSettings::class, 'update'])->name('settings.update');
+        Route::post('/ayarlar/fiyat-ice-aktar', [AdminSettings::class, 'importPrices'])->name('settings.prices.import');
 
         Route::get('/denetim', [AdminAuditLog::class, 'index'])->name('audit');
     });

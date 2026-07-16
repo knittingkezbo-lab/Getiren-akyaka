@@ -89,6 +89,8 @@ class AuditLogTest extends TestCase
             'priceHints' => [],
             'settings' => [
                 'safety_buffer_pct' => 25,
+                'unknown_buffer_pct' => 35,
+                'fallback_item_price' => 60,
                 'min_order_total' => 100,
                 'accepting_orders' => true,
                 'auto_assign_courier' => false,
@@ -109,6 +111,8 @@ class AuditLogTest extends TestCase
             'priceHints' => [],
             'settings' => [
                 'safety_buffer_pct' => (float) Setting::get('safety_buffer_pct', 15),
+                'unknown_buffer_pct' => (float) Setting::get('unknown_buffer_pct', 35),
+                'fallback_item_price' => (float) Setting::get('fallback_item_price', 60),
                 'min_order_total' => (float) Setting::get('min_order_total', 100),
                 'accepting_orders' => (bool) Setting::get('accepting_orders', 1),
                 'auto_assign_courier' => (bool) Setting::get('auto_assign_courier', 0),
