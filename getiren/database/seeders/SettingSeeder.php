@@ -15,7 +15,6 @@ class SettingSeeder extends Seeder
             'fallback_item_price' => 60,   // sözlükte olmayan kalemin varsayılan birim fiyatı
             'min_order_total' => 100,      // asgari ürün tahmini (TL)
             'accepting_orders' => 1,       // sipariş alımı açık
-            'auto_assign_courier' => 0,    // otomatik kurye ataması kapalı
         ];
 
         // Yalnızca YOKSA yaz — admin'in panelden ayarladığı değerleri deploy/seed ezmesin

@@ -30,7 +30,7 @@ class NotificationTest extends TestCase
     {
         $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
-        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true]);
 
         return [$customer, Order::firstOrFail()];
     }
@@ -81,7 +81,7 @@ class NotificationTest extends TestCase
         $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
 
-        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true]);
 
         $note = $courier->fresh()->notifications()->first();
         $this->assertNotNull($note);
@@ -211,7 +211,7 @@ class NotificationTest extends TestCase
         $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
 
-        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true]);
 
         // new_job kapalı → kurye zil bildirimi almaz
         $this->assertEquals(0, $courier->fresh()->notifications()->count());

@@ -35,7 +35,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Inertia istekleri (X-Inertia) hata akışını kendi yönetir: doğrulama hataları
+        // redirect+session ile döner, JSON'a çevrilmemeli. Ama gerçek JSON istemcileri
+        // (ör. canlı tahmin endpoint'i) 422/401'i JSON olarak almalı — yoksa istemci
+        // hatayı okuyamaz, sessizce login sayfasının HTML'ini yer.
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->is('api/*')
+                || (! $request->hasHeader('X-Inertia') && $request->expectsJson()),
         );
     })->create();

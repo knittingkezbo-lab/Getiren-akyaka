@@ -1,13 +1,12 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
+    acceptingOrders: { type: Boolean, default: true },
     zones: { type: Array, default: () => [] },
     priceHints: { type: Array, default: () => [] },
-    bufferPct: { type: Number, default: 15 },
-    minOrderTotal: { type: Number, default: 0 },
     addresses: { type: Array, default: () => [] },
 });
 
@@ -23,37 +22,75 @@ const form = useForm({
 const money = (n) => Number(n).toLocaleString('tr-TR');
 const selectedZone = computed(() => props.zones.find((z) => z.id === form.zone_id) ?? props.zones[0]);
 
-// İstemci önizlemesi — sunucudaki OrderEstimator ile AYNI algoritma (sunucu otoriter)
-const estimate = computed(() => {
-    const parts = (form.raw_text || '')
-        .toLocaleLowerCase('tr')
-        .split(/[,\n;]+/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-    if (!parts.length || !selectedZone.value) return null;
+/*
+ * Tahmin YALNIZCA sunucudan gelir. Müşteri gördüğü tutara rıza gösteriyor; bu yüzden
+ * ekrandaki rakam, store()'un provizyona alacağı rakamla aynı algoritmadan gelmeli.
+ * İstemcide ikinci bir hesap tutmak (eskiden vardı) rıza uyuşmazlığı üretiyordu.
+ */
+const estimate = ref(null);
+const estimating = ref(false);
+const estimateError = ref(null);
 
-    const hints = [...props.priceHints].sort((a, b) => b.keyword.length - a.keyword.length);
-    let items = 0;
-    for (const part of parts) {
-        const m = part.match(/^(\d+)/);
-        const qty = m ? Math.max(1, parseInt(m[1], 10)) : 1;
-        let price = 40;
-        for (const h of hints) {
-            const kw = h.keyword.toLocaleLowerCase('tr').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            if (new RegExp('(^|[^\\p{L}])' + kw + '([^\\p{L}]|$)', 'u').test(part)) {
-                price = Number(h.unit_price);
-                break;
-            }
-        }
-        items += qty * price;
+let debounceTimer = null;
+let requestSeq = 0; // yarış: geciken eski yanıt yeni sonucu ezmesin
+
+const fetchEstimate = async () => {
+    const text = (form.raw_text || '').trim();
+
+    if (!props.acceptingOrders || !text || !form.zone_id) {
+        estimate.value = null;
+        estimateError.value = null;
+        return;
     }
-    items = Math.max(items, Number(props.minOrderTotal));
-    const buffer = Math.ceil((items * Number(props.bufferPct)) / 100);
-    const fee = Number(selectedZone.value.service_fee);
-    return { items, buffer, fee, total: items + buffer + fee };
-});
 
-const canSubmit = computed(() => !!estimate.value);
+    const seq = ++requestSeq;
+    estimating.value = true;
+    estimateError.value = null;
+
+    try {
+        const res = await fetch('/musteri/siparis/tahmin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+            body: JSON.stringify({ raw_text: text, zone_id: form.zone_id }),
+        });
+
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+
+        if (seq === requestSeq) estimate.value = data;
+    } catch (e) {
+        // Hata durumunda eski/uydurma tutarla sipariş onaylanamamalı
+        if (seq === requestSeq) {
+            estimate.value = null;
+            estimateError.value = 'Tahmin alınamadı. Bağlantını kontrol edip tekrar dene.';
+        }
+    } finally {
+        if (seq === requestSeq) estimating.value = false;
+    }
+};
+
+watch(
+    () => [form.raw_text, form.zone_id],
+    () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchEstimate, 400);
+    },
+    { immediate: true },
+);
+
+// Hata sonrası metin aynı kaldığında watch tetiklenmez; kullanıcı çıkmazda kalmasın
+const retryEstimate = () => {
+    clearTimeout(debounceTimer);
+    fetchEstimate();
+};
+
+const canSubmit = computed(
+    () => props.acceptingOrders && !!estimate.value && !estimating.value && (form.address_text || '').trim().length >= 5,
+);
 
 const quickItems = ['süt', 'ekmek', 'su', 'kahve', 'ağrı kesici', 'gazete'];
 const addQuick = (w) => {
@@ -85,7 +122,6 @@ const suggestions = computed(() => {
     const q = segInfo.value.query.toLocaleLowerCase('tr');
     if (q.length < 2) return [];
     return props.priceHints
-        .map((h) => h.keyword)
         .filter((k) => {
             const kl = k.toLocaleLowerCase('tr');
             return kl !== q && kl.includes(q);
@@ -109,6 +145,15 @@ const pickSuggestion = (kw) => {
     <Head title="Yeni sipariş" />
 
     <AppLayout title="Yeni sipariş" subtitle="Üç adımda hazır — acele etme, biz buradayız.">
+
+        <!-- Sipariş kabulü kapalı: kullanıcı boşuna form doldurup sona reddedilmesin -->
+        <div v-if="!acceptingOrders" class="alert alert--warn" style="margin-bottom:16px">
+            <span class="alert__ic">⏸</span>
+            <div>
+                <b>Şu anda yeni sipariş alamıyoruz.</b>
+                <p style="margin:2px 0 0">Kısa süre sonra tekrar dene — mevcut siparişlerin etkilenmez.</p>
+            </div>
+        </div>
 
         <!-- Nasıl çalışır: "gördüğün tutarı ödemiyorsun" mesajı, karar anından ÖNCE -->
         <div class="howto">
@@ -171,11 +216,23 @@ const pickSuggestion = (kw) => {
                             <label :for="'z' + z.id"><b>{{ z.name }}</b><span>{{ money(z.service_fee) }} TL</span></label>
                         </template>
                     </div>
-                    <div class="field" style="margin-bottom:0" v-if="addresses.length">
-                        <label class="label">Adres</label>
+                    <!-- Kayıtlı adres varsa kısayol; ama adres alanı HER ZAMAN görünür:
+                         kayıtlı adresi olmayan müşteri adressiz sipariş verebiliyordu. -->
+                    <div class="field" v-if="addresses.length">
+                        <label class="label">Kayıtlı adreslerin</label>
                         <select class="select" @change="pickAddress">
                             <option v-for="a in addresses" :key="a.id" :value="a.id">{{ a.label }} · {{ a.line }}</option>
                         </select>
+                    </div>
+                    <div class="field" style="margin-bottom:0">
+                        <label class="label" for="adres">Teslimat adresi</label>
+                        <input
+                            id="adres"
+                            class="input"
+                            v-model="form.address_text"
+                            placeholder="Mahalle, sokak, bina/daire — kurye seni bulabilsin"
+                        />
+                        <p v-if="form.errors.address_text" class="error-text" style="margin-top:6px">{{ form.errors.address_text }}</p>
                     </div>
                 </div>
 
@@ -194,17 +251,28 @@ const pickSuggestion = (kw) => {
                 <div class="ticket">
                     <div class="spread">
                         <div><p class="eyebrow">Tahmini fiş</p><h3 style="margin-top:2px">Ön hesap</h3></div>
-                        <span class="badge badge--amber">%{{ bufferPct }} pay dahil</span>
+                        <span v-if="estimate" class="badge badge--amber">%{{ estimate.buffer_pct }} pay dahil</span>
                     </div>
                     <hr class="ticket__perf" />
 
                     <template v-if="estimate">
-                        <div class="ticket__row"><span>Ürün tahmini</span><b>{{ money(estimate.items) }} TL</b></div>
-                        <div class="ticket__row"><span>%{{ bufferPct }} güvenlik payı</span><b>{{ money(estimate.buffer) }} TL</b></div>
-                        <div class="ticket__row"><span>Teslimat · {{ selectedZone?.name }}</span><b>{{ money(estimate.fee) }} TL</b></div>
+                        <div class="ticket__row"><span>Ürün tahmini</span><b>{{ money(estimate.items_total) }} TL</b></div>
+                        <div class="ticket__row"><span>%{{ estimate.buffer_pct }} güvenlik payı</span><b>{{ money(estimate.safety_buffer) }} TL</b></div>
+                        <div class="ticket__row"><span>Teslimat · {{ selectedZone?.name }}</span><b>{{ money(estimate.service_fee) }} TL</b></div>
                         <hr class="ticket__perf" />
-                        <div class="ticket__row ticket__row--total"><span>Provizyona alınacak</span><b>{{ money(estimate.total) }} TL</b></div>
+                        <div class="ticket__row ticket__row--total"><span>Provizyona alınacak</span><b>{{ money(estimate.reserved_amount) }} TL</b></div>
+
+                        <!-- Tanımadığımız kalem varsa payı yükseltiyoruz; müşteri bunu bilsin -->
+                        <p v-if="estimate.unknown_count" class="hint" style="margin-top:10px">
+                            ⓘ {{ estimate.unknown_count }} kalemi tanımıyoruz, tahmini geniş tuttuk (%{{ estimate.buffer_pct }} pay).
+                            Gerçek fişe göre kesilir, fazlası sana kalır.
+                        </p>
                     </template>
+                    <p v-else-if="estimating" class="muted" style="padding:10px 0">Tahmin hesaplanıyor…</p>
+                    <div v-else-if="estimateError" style="padding:10px 0">
+                        <p class="error-text" style="margin:0 0 8px">⚠ {{ estimateError }}</p>
+                        <button type="button" class="btn btn--ghost btn--sm" @click="retryEstimate">Tekrar dene</button>
+                    </div>
                     <p v-else class="muted" style="padding:10px 0">Sipariş metnini yaz, tahmin çıksın.</p>
 
                     <div class="alert alert--info" style="margin-top:14px">
@@ -227,7 +295,7 @@ const pickSuggestion = (kw) => {
                         :disabled="!canSubmit || !form.terms_accepted || form.processing"
                         @click="submit"
                     >
-                        {{ form.processing ? 'Provizyona alınıyor…' : estimate ? `Onayla ve ${money(estimate.total)} TL provizyona al` : 'Onayla ve provizyona al' }}
+                        {{ form.processing ? 'Provizyona alınıyor…' : estimate ? `Onayla ve ${money(estimate.reserved_amount)} TL provizyona al` : 'Onayla ve provizyona al' }}
                     </button>
                     <Link href="/musteri" class="btn btn--ghost btn--block" style="margin-top:8px">Vazgeç</Link>
                 </div>
@@ -236,7 +304,7 @@ const pickSuggestion = (kw) => {
 
         <!-- mobil alt onay barı -->
         <div class="stickybar" v-if="estimate">
-            <div><small class="muted">Provizyona alınacak</small><br /><b>{{ money(estimate.total) }} TL</b></div>
+            <div><small class="muted">Provizyona alınacak</small><br /><b>{{ money(estimate.reserved_amount) }} TL</b></div>
             <button class="btn btn--primary" :disabled="!canSubmit || !form.terms_accepted || form.processing" @click="submit">Onayla →</button>
         </div>
     </AppLayout>

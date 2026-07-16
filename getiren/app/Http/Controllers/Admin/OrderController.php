@@ -14,6 +14,7 @@ use App\Notifications\OrderNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,7 +52,11 @@ class OrderController extends Controller
             'orders' => $orders,
             'filters' => $request->only('status', 'zone', 'q'),
             'zones' => Zone::orderBy('sort_order')->get(['id', 'name']),
-            'couriers' => User::where('role', UserRole::Courier)->orderBy('name')->get(['id', 'name']),
+            // Yalnızca onaylı kurye atanabilir — onaysızı listede göstermek boşuna hata üretir
+            'couriers' => User::where('role', UserRole::Courier)
+                ->whereNotNull('approved_at')
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'statuses' => collect(OrderStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()])->all(),
         ]);
     }
@@ -62,7 +67,25 @@ class OrderController extends Controller
             'courier_id' => ['required', 'integer', 'exists:users,id'],
         ]);
 
-        $courier = User::where('role', UserRole::Courier)->findOrFail($data['courier_id']);
+        // Kapanmış siparişe atama yapılamaz: müşteriye "kuryen atandı" bildirimi giderdi
+        $assignable = [OrderStatus::Reserved, OrderStatus::Assigned, OrderStatus::Shopping, OrderStatus::OnTheWay];
+
+        if (! in_array($order->status, $assignable, true)) {
+            throw ValidationException::withMessages([
+                'courier_id' => 'Bu sipariş kapanmış ('.$order->status->label().'); kurye atanamaz.',
+            ]);
+        }
+
+        // Onaysız kurye kurye alanına giremez (courier.approved) — atanırsa iş kimsenin
+        // dokunamayacağı yerde asılı kalır. Rol yetmez, onay da şart.
+        $courier = User::where('role', UserRole::Courier)->find($data['courier_id']);
+
+        if ($courier === null || ! $courier->isApproved()) {
+            throw ValidationException::withMessages([
+                'courier_id' => 'Yalnızca onaylı bir kuryeye atama yapılabilir.',
+            ]);
+        }
+
         $previous = $order->courier?->name;
 
         DB::transaction(function () use ($order, $courier, $previous) {

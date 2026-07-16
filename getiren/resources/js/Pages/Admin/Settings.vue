@@ -59,7 +59,6 @@ const form = useForm({
         fallback_item_price: Number(props.settings.fallback_item_price),
         min_order_total: Number(props.settings.min_order_total),
         accepting_orders: !!props.settings.accepting_orders,
-        auto_assign_courier: !!props.settings.auto_assign_courier,
     },
     priceHints: props.priceHints.map((p) => ({ id: p.id, keyword: p.keyword, category: p.category, unit_price: Number(p.unit_price) })),
     company: buildCompany(),
@@ -117,7 +116,6 @@ const save = () => form.post('/yonetici/ayarlar', { preserveScroll: true });
                     </div>
                     <div class="stack-sm" style="margin-top:4px">
                         <div class="list__row"><div><b>Siparişleri kabul et</b><p class="hint" style="margin-top:2px">Kapatınca yeni sipariş alınmaz.</p></div><label class="switch"><input type="checkbox" v-model="form.settings.accepting_orders" /><span class="track"></span></label></div>
-                        <div class="list__row"><div><b>Otomatik kurye ataması</b><p class="hint" style="margin-top:2px">En yakın müsait kuryeye ata.</p></div><label class="switch"><input type="checkbox" v-model="form.settings.auto_assign_courier" /><span class="track"></span></label></div>
                     </div>
                 </div>
 

@@ -76,7 +76,7 @@ class PriceLearningTest extends TestCase
 
         $customer = $this->makeCustomer();
         $this->actingAs($customer)->post('/musteri/siparis', [
-            'raw_text' => 'süt', 'zone_id' => $this->zone()->id, 'terms_accepted' => true,
+            'raw_text' => 'süt', 'zone_id' => $this->zone()->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true,
         ]);
 
         $order = Order::firstOrFail();
@@ -99,7 +99,7 @@ class PriceLearningTest extends TestCase
     {
         $customer = $this->makeCustomer();
         $this->actingAs($customer)->post('/musteri/siparis', [
-            'raw_text' => '3 ekmek', 'zone_id' => $this->zone()->id, 'terms_accepted' => true,
+            'raw_text' => '3 ekmek', 'zone_id' => $this->zone()->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true,
         ]);
 
         $order = Order::firstOrFail();

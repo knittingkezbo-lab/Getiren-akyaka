@@ -34,6 +34,7 @@ class OrderFlowTest extends TestCase
             ->post('/musteri/siparis', [
                 'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek',
                 'zone_id' => $zone->id,
+                'address_text' => 'Akyaka Merkez',
                 'terms_accepted' => true,
             ])
             ->assertRedirect();
@@ -82,6 +83,7 @@ class OrderFlowTest extends TestCase
             ->post('/musteri/siparis', [
                 'raw_text' => '1 kutu süt, 2 ağrı kesici, ekmek',
                 'zone_id' => $zone->id,
+                'address_text' => 'Akyaka Merkez',
                 'terms_accepted' => true,
             ])
             ->assertSessionHasErrors('raw_text');
@@ -94,7 +96,7 @@ class OrderFlowTest extends TestCase
     {
         $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
-        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true]);
         $order = Order::firstOrFail();
 
         $this->actingAs($customer)
@@ -116,7 +118,7 @@ class OrderFlowTest extends TestCase
     {
         $owner = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
-        $this->actingAs($owner)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
+        $this->actingAs($owner)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true]);
         $order = Order::firstOrFail();
 
         $intruder = $this->makeCustomer();
@@ -147,7 +149,7 @@ class OrderFlowTest extends TestCase
         $zone = Zone::where('key', 'akyaka')->first();
 
         $this->actingAs($customer)->post('/musteri/siparis', [
-            'raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true,
+            'raw_text' => 'ekmek', 'zone_id' => $zone->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true,
         ]);
 
         $this->assertEquals(config('features.terms_version'), Order::firstOrFail()->terms_version);

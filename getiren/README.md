@@ -169,7 +169,7 @@ Yalnızca **dev** ortamında seed edilir (`APP_ENV != production`).
   sağlayıcı + referans, alınan/kesilen tutar. Bir siparişin **birden çok** provizyonu olabilir (ek ödeme).
 - **price_hints** — tahmin sözlüğü + `source`, `observed_count`, `last_observed_at`, `reference_price`
 - **settings** — `safety_buffer_pct`, `unknown_buffer_pct`, `fallback_item_price`, `min_order_total`,
-  `accepting_orders`, `auto_assign_courier` + `company_*` override'ları
+  `accepting_orders` (kapalıyken tahmin de sipariş de reddedilir) + `company_*` override'ları
 - **audit_logs** — yönetici eylemleri (append-only); `meta`'da ayarların eski→yeni farkı
 - **zones** · **addresses** · **notifications**
 - _(`wallets` + `wallet_transactions` kaldırıldı — migration 000017; 000018 eski siparişlere provizyon üretti.)_
@@ -179,10 +179,27 @@ Yalnızca **dev** ortamında seed edilir (`APP_ENV != production`).
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test    # 98 test / 313 assertion (sqlite :memory)
+docker compose exec app php artisan test    # 135 test / 451 assertion (sqlite :memory)
 ```
 
 GitHub Actions (`.github/workflows/ci.yml`): `tests` + `assets` (`npm run build`).
+
+### Paranın etrafındaki kapılar
+
+Bu testler bir kez gerçekten açık olan delikleri tutuyor; hepsi önce **kırık** yazıldı:
+
+| Test | Tuttuğu delik |
+|---|---|
+| `OrderEstimateEndpointTest` | Ekranda gösterilen tutar ile provizyona alınan tutarın aynı olması (istemcide ayrı hesap yok) + fiyat sözlüğünün istemciye sızmaması |
+| `OrderIntakeGateTest` | "Siparişleri kabul et" kapalıyken tahmin de sipariş de reddedilir |
+| `CourierSettlePayloadTest` | Fiş siparişin kalem kümesiyle birebir eşleşir: tekrar eden kalem fişi şişiremez, eksik/yabancı kalem sessizce atlanamaz |
+| `JobClaimRaceTest` | İki kurye aynı işi üstlenemez (koşul UPDATE'in içinde) |
+| `AdminAssignGuardTest` | Onaysız kuryeye ve kapanmış siparişe atama yapılamaz |
+| `OrderAddressTest` | Adressiz sipariş oluşmaz |
+| `OrderCodeTest` | Sipariş kodu satırın kendi id'sinden türer (çakışma yok, yıl elle gömülü değil) |
+| `LoginThrottleTest` | Giriş denemesi e-posta+IP başına sınırlı |
+| `ProductionPaymentGuardTest` | Üretimde demo ödeme sürücüsü reddedilir |
+| `PaymentCallbackDisabledTest` | Doğrulanmamış PayTR callback'i kapalı (404) |
 
 ---
 

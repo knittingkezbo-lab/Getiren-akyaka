@@ -69,7 +69,7 @@ class AuditLogTest extends TestCase
         $customer = $this->makeCustomer();
         $zone = Zone::where('key', 'akyaka')->first();
 
-        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'terms_accepted' => true]);
+        $this->actingAs($customer)->post('/musteri/siparis', ['raw_text' => 'ekmek', 'zone_id' => $zone->id, 'address_text' => 'Akyaka Merkez', 'terms_accepted' => true]);
         $order = Order::firstOrFail();
 
         $this->actingAs($admin)->post("/yonetici/siparisler/{$order->id}/ata", ['courier_id' => $courier->id])->assertRedirect();
@@ -93,7 +93,6 @@ class AuditLogTest extends TestCase
                 'fallback_item_price' => 60,
                 'min_order_total' => 100,
                 'accepting_orders' => true,
-                'auto_assign_courier' => false,
             ],
         ])->assertRedirect();
 
@@ -115,7 +114,6 @@ class AuditLogTest extends TestCase
                 'fallback_item_price' => (float) Setting::get('fallback_item_price', 60),
                 'min_order_total' => (float) Setting::get('min_order_total', 100),
                 'accepting_orders' => (bool) Setting::get('accepting_orders', 1),
-                'auto_assign_courier' => (bool) Setting::get('auto_assign_courier', 0),
             ],
         ];
 

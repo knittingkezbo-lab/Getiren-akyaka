@@ -26,7 +26,6 @@ class SettingController extends Controller
         'fallback_item_price' => 'Bilinmeyen kalem varsayılan fiyatı',
         'min_order_total' => 'Minimum sipariş tutarı',
         'accepting_orders' => 'Sipariş kabulü',
-        'auto_assign_courier' => 'Otomatik kurye atama',
     ];
 
     /** Şirket bilgisi alanlarının Türkçe adları (denetim kaydı için). */
@@ -59,7 +58,6 @@ class SettingController extends Controller
                 'fallback_item_price' => (float) Setting::get('fallback_item_price', 60),
                 'min_order_total' => (float) Setting::get('min_order_total', 100),
                 'accepting_orders' => (bool) Setting::get('accepting_orders', 1),
-                'auto_assign_courier' => (bool) Setting::get('auto_assign_courier', 0),
             ],
             'priceHints' => PriceHint::orderBy('keyword')->get()->map(fn (PriceHint $p) => [
                 'id' => $p->id,
@@ -90,7 +88,6 @@ class SettingController extends Controller
             'settings.fallback_item_price' => ['required', 'numeric', 'min:0', 'max:100000'],
             'settings.min_order_total' => ['required', 'numeric', 'min:0'],
             'settings.accepting_orders' => ['required', 'boolean'],
-            'settings.auto_assign_courier' => ['required', 'boolean'],
             'priceHints' => ['array'],
             'priceHints.*.id' => ['required', 'integer', 'exists:price_hints,id'],
             'priceHints.*.unit_price' => ['required', 'numeric', 'min:0', 'max:100000'],

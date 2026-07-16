@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [CustomerDashboard::class, 'index'])->name('dashboard');
 
         Route::get('/siparis/yeni', [OrderController::class, 'create'])->name('orders.create');
+        Route::post('/siparis/tahmin', [OrderController::class, 'estimate'])->name('orders.estimate');
         Route::post('/siparis', [OrderController::class, 'store'])->name('orders.store');
 
         Route::get('/siparisler/{order}', [OrderController::class, 'show'])->name('orders.show');

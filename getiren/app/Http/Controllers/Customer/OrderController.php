@@ -14,6 +14,7 @@ use App\Notifications\OrderNotification;
 use App\Payments\PaymentException;
 use App\Payments\PaymentGateway;
 use App\Services\OrderEstimator;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -63,24 +64,73 @@ class OrderController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('Customer/OrderNew', [
+            'acceptingOrders' => $this->intakeIsOpen(),
             'zones' => Zone::where('is_active', true)->orderBy('sort_order')->get(['id', 'key', 'name', 'service_fee']),
-            'priceHints' => PriceHint::where('is_active', true)->get(['keyword', 'unit_price']),
-            'bufferPct' => (float) Setting::get('safety_buffer_pct', 15),
-            'minOrderTotal' => (float) Setting::get('min_order_total', 0),
+            // Yalnızca kelimeler: otomatik tamamlamanın fiyata ihtiyacı yok, tahmini
+            // sunucu üretiyor. Fiyat sözlüğü istemciye açılmaz.
+            'priceHints' => PriceHint::where('is_active', true)->orderBy('keyword')->pluck('keyword'),
             'addresses' => $request->user()->addresses()->get(['id', 'label', 'line']),
         ]);
     }
 
+    /**
+     * Canlı tahmin — ekranda gösterilen tutarın TEK otoritesi.
+     *
+     * Önizleme istemcide hesaplanmamalı: müşteri gördüğü tutara rıza gösteriyor, bu yüzden
+     * o tutar store()'un provizyona alacağı tutarla aynı algoritmadan gelmeli. İki ayrı
+     * hesap (Vue 40TL/%15 vs PHP 60TL/%35) rıza uyuşmazlığı demekti.
+     */
+    public function estimate(Request $request, OrderEstimator $estimator): JsonResponse
+    {
+        $this->abortIfIntakeClosed();
+
+        $data = $request->validate([
+            'raw_text' => ['required', 'string', 'max:1000'],
+            'zone_id' => ['required', 'integer'],
+        ]);
+
+        $zone = Zone::where('is_active', true)->find($data['zone_id']);
+
+        if ($zone === null) {
+            throw ValidationException::withMessages(['zone_id' => 'Bu bölgeye şu an hizmet verilmiyor.']);
+        }
+
+        return response()->json($estimator->estimate($data['raw_text'], $zone));
+    }
+
+    /**
+     * Yönetici "Siparişleri kabul et" anahtarını kapattığında dükkân gerçekten kapanmalı.
+     * Tek kaynak: hem önizleme hem sipariş bu kapıdan geçer.
+     */
+    private function intakeIsOpen(): bool
+    {
+        return (bool) Setting::get('accepting_orders', 1);
+    }
+
+    private function abortIfIntakeClosed(): void
+    {
+        if (! $this->intakeIsOpen()) {
+            throw ValidationException::withMessages([
+                'raw_text' => 'Şu anda yeni sipariş alamıyoruz. Lütfen daha sonra tekrar dene.',
+            ]);
+        }
+    }
+
     public function store(Request $request, OrderEstimator $estimator, PaymentGateway $gateway): RedirectResponse
     {
+        $this->abortIfIntakeClosed();
+
         $data = $request->validate([
             'raw_text' => ['required', 'string', 'max:1000'],
             'zone_id' => ['required', 'integer', 'exists:zones,id'],
             'address_label' => ['nullable', 'string', 'max:100'],
-            'address_text' => ['nullable', 'string', 'max:255'],
+            // Adressiz sipariş kuryeyi yolsuz bırakır; provizyon çoktan alınmış olur
+            'address_text' => ['required', 'string', 'min:5', 'max:255'],
             'customer_note' => ['nullable', 'string', 'max:255'],
             'terms_accepted' => ['accepted'],
         ], [
+            'address_text.required' => 'Teslimat adresi gerekli — kurye nereye geleceğini bilmeli.',
+            'address_text.min' => 'Adresi biraz daha açık yazar mısın?',
             'terms_accepted.accepted' => 'Devam etmek için ön bilgilendirme ve kullanım şartlarını onaylamalısın.',
         ]);
 
@@ -93,7 +143,9 @@ class OrderController extends Controller
         try {
             $order = DB::transaction(function () use ($user, $zone, $data, $est, $gateway) {
                 $order = $user->ordersAsCustomer()->create([
-                    'code' => $this->nextCode(),
+                    // Gerçek kod id belli olunca yazılır (aşağıda). Buradaki geçici değer
+                    // yalnızca unique kolonu doldurur; dışarı sızmaz (aynı transaction).
+                    'code' => 'GEC-'.Str::uuid(),
                     'zone_id' => $zone->id,
                     'raw_text' => $data['raw_text'],
                     'address_label' => $data['address_label'] ?? null,
@@ -107,6 +159,8 @@ class OrderController extends Controller
                     'terms_version' => config('features.terms_version'),
                     'reserved_at' => now(),
                 ]);
+
+                $order->update(['code' => $this->codeFor($order)]);
 
                 $order->items()->createMany($est['items']);
 
@@ -257,8 +311,15 @@ class OrderController extends Controller
     }
 
     /** Demo sipariş kodu (A24-119, A24-120, ...). */
-    private function nextCode(): string
+    /**
+     * Sipariş kodu satırın KENDİ id'sinden türer; benzersizliği veritabanı garanti eder.
+     *
+     * Eskiden 'A24-'.(max(id)+114) idi: kod tablonun en büyük id'sinden türediği için iki
+     * eşzamanlı sipariş aynı kodu alabiliyordu (code unique → biri 500 yerdi) ve bir satır
+     * silinince sayaç geriye gidip var olan bir kodla çakışıyordu. Yıl da elle gömülüydü.
+     */
+    private function codeFor(Order $order): string
     {
-        return 'A24-'.(((int) Order::max('id')) + 114);
+        return 'A'.now()->format('y').'-'.$order->id;
     }
 }

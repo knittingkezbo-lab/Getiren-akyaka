@@ -11,6 +11,7 @@ use App\Payments\PaymentGateway;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -82,12 +83,23 @@ class JobController extends Controller
     /** İşi üstlen: reserved + atanmamış → assigned (kurye ben). */
     public function accept(Request $request, Order $order): RedirectResponse
     {
-        abort_unless($order->status === OrderStatus::Reserved && $order->courier_id === null, 422);
+        // Yarış: iki kurye aynı anda "üstlen" derse ikisi de route binding'den gelen ESKİ
+        // anlık görüntüyü kontrol edip ikisi de geçiyordu; ikincisi birincinin üstüne
+        // yazıyordu. Koşulu UPDATE'in kendisine taşıyoruz — kazananı veritabanı seçer.
+        $claimed = Order::whereKey($order->id)
+            ->where('status', OrderStatus::Reserved)
+            ->whereNull('courier_id')
+            ->update([
+                'courier_id' => $request->user()->id,
+                'status' => OrderStatus::Assigned,
+            ]);
 
-        $order->update([
-            'courier_id' => $request->user()->id,
-            'status' => OrderStatus::Assigned,
-        ]);
+        if ($claimed === 0) {
+            return redirect()->route('courier.dashboard')
+                ->with('error', 'Bu işi başka bir kurye üstlendi.');
+        }
+
+        $order->refresh();
 
         $order->customer->notify(new OrderNotification($order, 'Kuryen atandı', "#{$order->code} siparişini {$request->user()->name} üstlendi.", event: 'assigned'));
 
@@ -99,14 +111,27 @@ class JobController extends Controller
     {
         abort_if($order->courier_id !== $request->user()->id, 403);
 
-        $next = match ($order->status) {
+        $current = $order->status;
+
+        $next = match ($current) {
             OrderStatus::Assigned => OrderStatus::Shopping,
             OrderStatus::Shopping => OrderStatus::OnTheWay,
             default => null,
         };
         abort_if($next === null, 422);
 
-        $order->update(['status' => $next]);
+        // Geçişi durumun kendisine koşulla: çift dokunuşta ikinci istek 0 satır günceller,
+        // böylece müşteriye "siparişin yolda" bildirimi iki kez gitmez.
+        $moved = Order::whereKey($order->id)
+            ->where('courier_id', $request->user()->id)
+            ->where('status', $current)
+            ->update(['status' => $next]);
+
+        if ($moved === 0) {
+            return back()->with('error', 'Sipariş bu sırada değişti — sayfayı tazele.');
+        }
+
+        $order->refresh();
 
         if ($next === OrderStatus::OnTheWay) {
             $order->customer->notify(new OrderNotification($order, 'Siparişin yolda', "#{$order->code} yola çıktı, birazdan kapında.", event: 'on_the_way'));
@@ -118,7 +143,8 @@ class JobController extends Controller
     /**
      * Fiş gir ve kapat = SETTLE. "Fişe göre kes → fazlasını iade et"in gerçekleştiği yer.
      * Kısmi tahsilde provizyonun kalanı sağlayıcı tarafından çözülür — ayrıca iade çağrısı gerekmez.
-     * Guard (status shopping/on_the_way) çift-settle'ı önler; geçit katmanı da ikinci tahsili reddeder.
+     * Çift-settle'ı satır kilidi + kilit altında yeniden okunan durum önler (geçit katmanının
+     * assertOpen'ı son savunma hattı; ona tek başına güvenilmez).
      */
     public function settle(Request $request, Order $order, PaymentGateway $gateway): RedirectResponse
     {
@@ -127,32 +153,52 @@ class JobController extends Controller
 
         $data = $request->validate([
             'items' => ['required', 'array', 'min:1'],
-            'items.*.id' => ['required', 'integer'],
+            'items.*.id' => ['required', 'integer', 'distinct'],
             'items.*.actual_price' => ['required', 'numeric', 'min:0', 'max:100000'],
         ]);
 
-        DB::transaction(function () use ($order, $data, $gateway) {
+        // Fiş, müşterinin kartından ne kesileceğini belirler: siparişin kalem kümesiyle
+        // BİREBİR eşleşmeli. Eskiden bulunamayan satır sessizce atlanıyordu — tekrar eden
+        // kalem fişi şişirip fazla tahsilata, eksik kalem de eksik fişe yol açıyordu.
+        $expected = $order->items()->pluck('id')->map(intval(...))->sort()->values()->all();
+        $sent = collect($data['items'])->pluck('id')->map(intval(...))->sort()->values()->all();
+
+        if ($sent !== $expected) {
+            throw ValidationException::withMessages([
+                'items' => 'Fiş siparişin kalemleriyle eşleşmiyor: her kalem tam olarak bir kez gönderilmeli.',
+            ]);
+        }
+
+        DB::transaction(function () use ($order, $data, $gateway, $request) {
+            // Satırı kilitle ve durumu kilit ALTINDA yeniden oku. Yukarıdaki kontrol route
+            // binding'den gelen eski anlık görüntüye bakıyor: çift gönderimde iki istek de
+            // aynı AÇIK provizyonu görüp sağlayıcıya iki tahsilat çağrısı yapabilirdi.
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            abort_if($locked->courier_id !== $request->user()->id, 403);
+            abort_unless(in_array($locked->status, [OrderStatus::Shopping, OrderStatus::OnTheWay], true), 422);
+
+            $items = $locked->items()->get()->keyBy('id');
             $receipt = 0.0;
+
             foreach ($data['items'] as $row) {
-                $item = $order->items()->whereKey($row['id'])->first();
-                if ($item) {
-                    $item->update(['actual_price' => $row['actual_price']]);
-                    $receipt += (float) $row['actual_price'];
-                }
+                $item = $items->get((int) $row['id']);
+                $item->update(['actual_price' => $row['actual_price']]);
+                $receipt += (float) $row['actual_price'];
             }
 
-            $serviceFee = (float) $order->service_fee;
-            $reserved = (float) $order->reserved_amount;
+            $serviceFee = (float) $locked->service_fee;
+            $reserved = (float) $locked->reserved_amount;
             $total = round($receipt + $serviceFee, 2);
 
-            $auth = $order->activeAuthorization();
+            $auth = $locked->activeAuthorization();
             abort_if($auth === null, 422); // provizyonu olmayan sipariş kapatılamaz
 
             if ($total <= $reserved) {
                 // Fiş kadarını kes; provizyonun kalanı sağlayıcıda serbest kalır = iade
                 $gateway->capture($auth, $total);
 
-                $order->update([
+                $locked->update([
                     'status' => OrderStatus::Delivered,
                     'actual_receipt_amount' => $receipt,
                     'captured_amount' => $total,
@@ -161,7 +207,7 @@ class JobController extends Controller
                 ]);
             } else {
                 // Fiş provizyonu aştı: provizyona dokunulmaz, müşteriden fark beklenir
-                $order->update([
+                $locked->update([
                     'status' => OrderStatus::RequiresExtraPayment,
                     'actual_receipt_amount' => $receipt,
                     'extra_required_amount' => round($total - $reserved, 2),
