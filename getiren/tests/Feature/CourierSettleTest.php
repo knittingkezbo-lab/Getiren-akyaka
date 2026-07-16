@@ -155,7 +155,8 @@ class CourierSettleTest extends TestCase
         $this->assertEquals(120.0, (float) PriceHint::where('keyword', 'peynir')->value('unit_price'));
     }
 
-    public function test_settle_does_not_relearn_known_item(): void
+    /** Bilinen kalem sözlüğe İKİNCİ kez eklenmez (fiyatı güncellenir — bkz. PriceLearningTest). */
+    public function test_settle_does_not_duplicate_known_item(): void
     {
         [, $courier, $order] = $this->shoppingOrder(); // süt/ağrı kesici/ekmek — hepsi sözlükte
         $before = PriceHint::count();

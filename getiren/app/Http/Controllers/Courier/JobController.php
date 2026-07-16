@@ -171,8 +171,8 @@ class JobController extends Controller
 
         $order->refresh();
 
-        // Gerçek fişten öğren: sözlükte olmayan kalemleri fiyatıyla price_hints'e ekle
-        $this->learnUnknownItems($order);
+        // Gerçek fiyatlarla sözlüğü besle (hem yeni kalemi ekle hem bilinenin fiyatını tazele)
+        $this->learnItemPrices($order);
 
         if ($order->status === OrderStatus::Delivered) {
             $order->customer->notify(new OrderNotification($order, 'Siparişin teslim edildi', "#{$order->code} teslim edildi. Fazla provizyon iade edildi.", event: 'delivered'));
@@ -186,37 +186,59 @@ class JobController extends Controller
     }
 
     /**
-     * Gerçek fişten sözlük öğrenme: bilinmeyen kalemi (miktar eki temizlenmiş) birim
-     * fiyatıyla price_hints'e ekler; sonraki siparişlerde öneri/tahmin gelişir.
+     * Sözlüğü GERÇEK fiyatlarla besle. Kuryenin girdiği tutar (fiş ya da elle giriş
+     * fark etmez) bu işin tek gerçek kaynağıdır: Akyaka'daki dükkânda fiilen ödenen para.
+     *
+     * Bilinen kalemin fiyatı da güncellenir — sadece bilinmeyeni eklemek yetmez,
+     * yoksa sözlük enflasyonun gerisinde kalır. İlk gerçek gözlem tahmini doğrudan
+     * ezer (hızlı yakınsama), sonrakiler yumuşatılır (bkz. PriceHint::recordObservation).
      */
-    private function learnUnknownItems(Order $order): void
+    private function learnItemPrices(Order $order): void
     {
-        $known = PriceHint::pluck('keyword')->map(fn ($k) => mb_strtolower($k, 'UTF-8'))->all();
-
         foreach ($order->items()->get() as $item) {
-            if ($item->actual_price === null || (int) $item->qty < 1) {
+            $qty = max(1, (int) $item->qty);
+
+            if ($item->actual_price === null || (float) $item->actual_price <= 0) {
                 continue;
             }
 
-            // Baştaki miktar/birim ekini at: "2 kutu peynir" → "peynir"
-            $keyword = trim(preg_replace(
-                '/^\d+\s*(kutu|adet|paket|kg|gr|gram|şişe|litre|lt|ml|dilim|top)?\s*/iu',
-                '',
-                mb_strtolower($item->name, 'UTF-8'),
-            ));
+            $keyword = $this->keywordFrom($item->name);
 
-            if (mb_strlen($keyword) < 2 || mb_strlen($keyword) > 30 || is_numeric($keyword) || in_array($keyword, $known, true)) {
+            if ($keyword === null) {
                 continue;
             }
 
-            PriceHint::create([
-                'keyword' => $keyword,
-                'category' => 'öğrenilen',
-                'unit_price' => round((float) $item->actual_price / max(1, (int) $item->qty), 2),
-                'is_active' => true,
-            ]);
-            $known[] = $keyword;
+            $unitPrice = round((float) $item->actual_price / $qty, 2);
+
+            $hint = PriceHint::whereRaw('LOWER(keyword) = ?', [$keyword])->first();
+
+            if ($hint === null) {
+                $hint = PriceHint::create([
+                    'keyword' => $keyword,
+                    'category' => 'öğrenilen',
+                    'unit_price' => $unitPrice,
+                    'is_active' => true,
+                ]);
+            }
+
+            $hint->recordObservation($unitPrice);
         }
+    }
+
+    /** Kalem adından sözlük anahtarı üret: "2 kutu peynir" → "peynir"; uygun değilse null. */
+    private function keywordFrom(string $name): ?string
+    {
+        $keyword = trim(preg_replace(
+            '/^\d+\s*(kutu|adet|paket|kg|gr|gram|şişe|litre|lt|ml|dilim|top)?\s*/iu',
+            '',
+            mb_strtolower($name, 'UTF-8'),
+        ));
+
+        if (mb_strlen($keyword) < 2 || mb_strlen($keyword) > 30 || is_numeric($keyword)) {
+            return null;
+        }
+
+        return $keyword;
     }
 
     private function card(Order $o): array
