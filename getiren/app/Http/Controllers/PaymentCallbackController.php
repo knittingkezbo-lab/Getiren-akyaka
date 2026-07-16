@@ -22,6 +22,10 @@ class PaymentCallbackController extends Controller
 {
     public function paytr(Request $request)
     {
+        // Entegrasyon (imza doğrulama) bitene kadar yol kapalı — açıkken bile
+        // hash doğrulanmadan hiçbir şey yapılmamalı (aşağıdaki DOĞRULA notu).
+        abort_unless(config('payments.callback_enabled'), 404);
+
         $cfg = config('payments.paytr');
         $merchantOid = (string) $request->input('merchant_oid');
         $status = (string) $request->input('status');       // 'success' | 'failed'

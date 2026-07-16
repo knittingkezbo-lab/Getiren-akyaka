@@ -36,6 +36,19 @@ return [
     |
     */
 
+    /*
+    |---------------------------------------------------------------------------
+    | PayTR callback kapısı
+    |---------------------------------------------------------------------------
+    |
+    | Entegrasyon (imza doğrulama dahil) tamamlanana kadar KAPALI. Kapalıyken
+    | /odeme/paytr/geri-bildirim 404 döner — imzasız bir POST'un sipariş durumunu
+    | değiştirmesi mümkün olmasın. Yalnızca uçtan uca test edildikten sonra açılır.
+    |
+    */
+
+    'callback_enabled' => (bool) env('PAYTR_CALLBACK_ENABLED', false),
+
     'paytr' => [
         'merchant_id' => env('PAYTR_MERCHANT_ID'),
         'merchant_key' => env('PAYTR_MERCHANT_KEY'),

@@ -17,10 +17,10 @@ tahmin edip ödeme aracında **provizyona alır**, kurye alışverişi yapıp ge
 ## Öne çıkan özellikler
 
 - **Provizyon (authorize → capture → void)** — para hareketi yalnızca `PaymentGateway` arayüzünden
-  geçer. Bugün `DemoGateway` takılı (gerçek para hareketi yok, durum makinesi gerçek PSP ile aynı);
-  **PayTR** sürücü iskeleti hazır, anahtarlar gelince `PAYMENT_DRIVER=paytr` yeter — uygulama kodu değişmez.
-  Kısmi tahsilde provizyonun kalanı serbest kalır → "fazlasını iade et" budur. Kapanmış provizyona
-  ikinci kez dokunulamaz: **çift-tahsil/çift-iade bu katmanda imkânsız.**
+  geçer. Bugün `DemoGateway` takılı: **gerçek para hareketi yok**, yalnızca durum makinesini modeller.
+  Kısmi tahsilde provizyonun kalanı serbest kalır → "fazlasını iade et" budur. `DemoGateway`'de
+  kapanmış provizyon ikinci kez capture/void edilemez (çift-tahsil koruması **bu sürücü için**
+  test edilmiştir; gerçek PSP'de aynı garanti idempotency + reconciliation ister — bkz. Bilinen açıklar).
 - **Tahmin motoru** — serbest metin → katmanlı fiyat sözlüğü → provizyon. Gerçek fiyatlardan
   kendi kendine öğrenir (aşağıda ayrı bölüm).
 - **Sipariş akışı** — yazarken öneri, kurye üstlenme → alışveriş → yolda → fiş girişi,
@@ -134,8 +134,12 @@ Yalnızca **dev** ortamında seed edilir (`APP_ENV != production`).
   `config/payments.php`'den (`PAYMENT_DRIVER`). Ek ödeme = ilk provizyonu tam kes + **farkı ayrı
   provizyonla** çek (gerçek PSP'de de provizyondan fazlası tahsil edilemez).
   **Değişmez:** _kesilen + geri bırakılan = provizyona alınan_ (`TestCase::assertAuthorizationsConsistent`).
-- **PayTR (iskelet)** — `PayTRGateway` + `PaymentCallbackController` + `/odeme/paytr/geri-bildirim`
-  (CSRF muaf). Canlıya almadan önce: **PayTR'de "Ön Provizyon" (blokeli ödeme) yetkisi şart** —
+- **PayTR (İSKELET — TAMAMLANMADI)** — `PayTRGateway`'in `authorize/capture/void` metotları
+  gerçek HTTP çağrısı **yapmaz**, bilinçli olarak exception atar. `PAYMENT_DRIVER=paytr` yazmak
+  şu an **hiçbir siparişin oluşmamasına** yol açar. Callback (`/odeme/paytr/geri-bildirim`)
+  `PAYTR_CALLBACK_ENABLED` bayrağının arkasında ve **varsayılan kapalı (404)** — imza doğrulaması
+  henüz bağlanmadı. Üretimde `demo` sürücüsü de reddedilir. Yani **bu uygulama şu an gerçek
+  ödemeyle canlıya alınamaz.** Canlıya almadan önce: **PayTR'de "Ön Provizyon" yetkisi şart** —
   standart hesap yalnızca anında tahsilat verir. Kart bilgisi **bize hiç gelmez** (PCI yükü PayTR'de);
   müşteri PayTR sayfasında girer, sonuç callback ile döner (`pending` → `authorized`). Bu yüzden
   go-live'da sipariş akışına **yönlendirme adımı** eklenmeli.
