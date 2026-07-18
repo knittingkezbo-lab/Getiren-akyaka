@@ -31,7 +31,9 @@ class OrderEstimator
             ->sortByDesc(fn (PriceHint $h) => mb_strlen($h->keyword))
             ->values();
 
-        $parts = collect(preg_split('/[,\n;]+/u', mb_strtolower($text, 'UTF-8')))
+        $text = preg_replace('/\s+ve\s+/u', "\n", mb_strtolower($text, 'UTF-8'));
+
+        $parts = collect(preg_split('/[,\n;]+/u', $text))
             ->map(fn ($p) => trim((string) $p))
             ->filter()
             ->values();
@@ -41,7 +43,7 @@ class OrderEstimator
         $unknownCount = 0;
 
         foreach ($parts as $part) {
-            $qty = preg_match('/^(\d+)/', $part, $m) ? max(1, (int) $m[1]) : 1;
+            $qty = $this->quantity($part);
 
             $match = $this->match($hints, $part);
 
@@ -87,14 +89,64 @@ class OrderEstimator
     /** Metin parçasını sözlükle eşleştir (kelime sınırına saygılı); yoksa null. */
     private function match(iterable $hints, string $part): ?PriceHint
     {
-        foreach ($hints as $hint) {
-            $kw = preg_quote(mb_strtolower($hint->keyword, 'UTF-8'), '/');
+        $partTokens = $this->tokens($part, dropLeadingQuantity: true);
 
-            if (preg_match('/(^|[^\p{L}])'.$kw.'([^\p{L}]|$)/u', $part)) {
+        foreach ($hints as $hint) {
+            $hintTokens = $this->tokens($hint->keyword);
+
+            if ($hintTokens !== [] && count(array_diff($hintTokens, $partTokens)) === 0) {
                 return $hint;
             }
         }
 
         return null;
+    }
+
+    /** Müşteri metninde adet başta da sonda da gelebilir: "2 ekmek", "yumurtadan 2 tane". */
+    private function quantity(string $part): int
+    {
+        if (preg_match('/^\s*(\d+)/u', $part, $m)) {
+            return max(1, (int) $m[1]);
+        }
+
+        if (preg_match('/(?:^|\s)(\d+)\s*(?:adet|tane|paket)\b/u', $part, $m)) {
+            return max(1, (int) $m[1]);
+        }
+
+        return 1;
+    }
+
+    /** Eşleşme için serbest metni daha toleranslı ama hâlâ deterministik token'lara çevir. */
+    private function tokens(string $text, bool $dropLeadingQuantity = false): array
+    {
+        $normalized = $this->normalizeForMatch($text);
+
+        if ($dropLeadingQuantity) {
+            $normalized = preg_replace('/^\s*\d+(?:[\.,]\d+)?\s*/u', '', $normalized);
+        }
+
+        preg_match_all('/\d+(?:[\.,]\d+)?(?:li|lı|lu|lü)?|\p{L}+/u', $normalized, $matches);
+
+        return array_values(array_unique($matches[0] ?? []));
+    }
+
+    private function normalizeForMatch(string $text): string
+    {
+        $text = mb_strtolower($text, 'UTF-8');
+        $text = str_replace(['’', '‘', '`', '´'], "'", $text);
+
+        // Paket/birim yazım farkları: "5kg" ≈ "5 kg", "1 lt" ≈ "1lt".
+        $text = preg_replace('/(\d+(?:[\.,]\d+)?)\s*(kg|gr|g|ml|lt|l)(?!\p{L})/u', '$1 $2', $text);
+        $text = preg_replace('/\b(?:kilogram|kilo)\b/u', 'kg', $text);
+        $text = preg_replace('/\b(?:litre|l)\b/u', 'lt', $text);
+
+        // "30ludan", "12'li" gibi ekli paket ifadelerini anahtar token'a indir.
+        $text = preg_replace('/(\d+)\s*[\'’]?\s*(li|lı|lu|lü)(?:dan|den|tan|ten)?\b/u', '$1$2', $text);
+
+        // Akyaka müşterisinin doğal dili: sözlük resmî ürün diliyle gelmiş olabilir.
+        $text = preg_replace('/\btavuk\b/u', 'piliç', $text);
+        $text = preg_replace('/\b(?:göğsü|göğüs|gögsü|gogsu|gogus)\b/u', 'bonfile', $text);
+
+        return $text;
     }
 }

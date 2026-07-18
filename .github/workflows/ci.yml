@@ -31,7 +31,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Ortam bilgisi
-        run: php -v && composer -V && php -m | tr '\n' ' '
+        run: |
+          php -v
+          composer -V
+          php -m | tr '\n' ' '
 
       - name: Copy .env
         run: cp .env.example .env
@@ -81,7 +84,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Ortam bilgisi
-        run: php -v && php -m | grep -i -E "pdo_mysql|mysqli" || echo "UYARI: pdo_mysql yok"
+        run: |
+          php -v
+          php -m | grep -i -E "pdo_mysql|mysqli" || echo "UYARI - pdo_mysql eklentisi yok"
 
       - name: Copy .env
         run: cp .env.example .env
