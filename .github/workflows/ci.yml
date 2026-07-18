@@ -13,6 +13,11 @@ name: CI
 #    istiyor; ubuntu-latest runner'ında PHP 8.3 var ve `composer install` orada düşüyor.
 #    Bu yüzden PHP job'ları php:8.4-cli container'ında koşuyor — üretimdeki sürümün aynısı.
 #
+# 3) Eklentiler Dockerfile ile BİREBİR AYNI kurulur (pdo_mysql mbstring bcmath zip intl
+#    pcntl). php:8.4-cli bunların çoğunu varsayılan getirmez; composer install ve Pint
+#    onlarsız da çalıştığı için sorun ancak `artisan test` aşamasında ortaya çıkıyordu.
+#    Kural: CI'daki PHP ortamı geliştirme imajından farklı olmamalı.
+#
 # NOT: container job'larında servislere port değil SERVİS ADIYLA erişilir (mysql:3306).
 #
 # sqlite hızlı geri bildirim içindir ama tek başına yetmez: lockForUpdate, koşullu UPDATE
@@ -32,15 +37,13 @@ jobs:
       run:
         working-directory: getiren
     steps:
-      - name: Sistem paketleri
+      - name: PHP ortamı (Dockerfile ile birebir aynı eklentiler)
         working-directory: .
         run: |
           apt-get update -qq
-          apt-get install -y -qq git unzip
-
-      - name: Composer kur
-        working-directory: .
-        run: |
+          apt-get install -y -qq --no-install-recommends \
+            git unzip libzip-dev libicu-dev libonig-dev default-mysql-client
+          docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring bcmath zip intl pcntl
           curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
           php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 
@@ -97,16 +100,13 @@ jobs:
       # test asla geliştirme şemasına yönelemez (RefreshDatabase tabloları düşürür).
 
     steps:
-      - name: Sistem paketleri ve pdo_mysql
+      - name: PHP ortamı (Dockerfile ile birebir aynı eklentiler)
         working-directory: .
         run: |
           apt-get update -qq
-          apt-get install -y -qq git unzip default-mysql-client
-          docker-php-ext-install -j"$(nproc)" pdo_mysql
-
-      - name: Composer kur
-        working-directory: .
-        run: |
+          apt-get install -y -qq --no-install-recommends \
+            git unzip libzip-dev libicu-dev libonig-dev default-mysql-client
+          docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring bcmath zip intl pcntl
           curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
           php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 
@@ -148,15 +148,13 @@ jobs:
       run:
         working-directory: getiren
     steps:
-      - name: Sistem paketleri
+      - name: PHP ortamı (Dockerfile ile birebir aynı eklentiler)
         working-directory: .
         run: |
           apt-get update -qq
-          apt-get install -y -qq git unzip
-
-      - name: Composer kur
-        working-directory: .
-        run: |
+          apt-get install -y -qq --no-install-recommends \
+            git unzip libzip-dev libicu-dev libonig-dev default-mysql-client
+          docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring bcmath zip intl pcntl
           curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
           php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
 

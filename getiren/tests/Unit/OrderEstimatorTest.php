@@ -126,4 +126,24 @@ class OrderEstimatorTest extends TestCase
         $this->assertEquals('Ayçiçek Yağı 5Lt', $est['items'][0]['name']);
         $this->assertEquals(459.0, $est['items'][0]['estimated_price']);
     }
+
+    public function test_generic_keyword_does_not_match_unrelated_long_item(): void
+    {
+        $est = $this->estimator->estimate('kahve makinesi', $this->akyaka);
+
+        $this->assertSame(1, $est['unknown_count']);
+        $this->assertFalse($est['items'][0]['known']);
+        $this->assertEquals(60.0, $est['items'][0]['estimated_price']);
+    }
+
+    public function test_generic_keyword_does_not_hide_missing_specific_packaged_product(): void
+    {
+        PriceHint::create(['keyword' => 'peynir', 'category' => 'Market', 'unit_price' => 240, 'is_active' => true]);
+
+        $est = $this->estimator->estimate('beyaz peynir 600gr', $this->akyaka);
+
+        $this->assertSame(1, $est['unknown_count']);
+        $this->assertFalse($est['items'][0]['known']);
+        $this->assertEquals(60.0, $est['items'][0]['estimated_price']);
+    }
 }

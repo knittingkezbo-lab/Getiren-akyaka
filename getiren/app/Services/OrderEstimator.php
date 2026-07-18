@@ -94,12 +94,43 @@ class OrderEstimator
         foreach ($hints as $hint) {
             $hintTokens = $this->tokens($hint->keyword);
 
-            if ($hintTokens !== [] && count(array_diff($hintTokens, $partTokens)) === 0) {
+            if ($this->isConfidentMatch($hintTokens, $partTokens)) {
                 return $hint;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Tek kelimelik sözlük girdileri risklidir: "kahve" ≠ "kahve makinesi",
+     * "peynir" ≠ "beyaz peynir 600gr". Emin değilsek unknown kalsın; fazla
+     * buffer, alakasız fiyatla eksik provizyondan daha güvenli.
+     */
+    private function isConfidentMatch(array $hintTokens, array $partTokens): bool
+    {
+        if ($hintTokens === [] || count(array_diff($hintTokens, $partTokens)) !== 0) {
+            return false;
+        }
+
+        if (count($hintTokens) > 1) {
+            return true;
+        }
+
+        $extra = array_values(array_diff($partTokens, $hintTokens));
+        if ($extra === []) {
+            return true;
+        }
+
+        $allowedContainerWords = ['adet', 'kutu', 'paket', 'şişe', 'sise'];
+
+        foreach ($extra as $token) {
+            if (! in_array($token, $allowedContainerWords, true)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** Müşteri metninde adet başta da sonda da gelebilir: "2 ekmek", "yumurtadan 2 tane". */
