@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    MySQL'e karşı test yapılandırması — CI'daki concurrency job'ı ve yerel doğrulama için.
+
+    NEDEN AYRI DOSYA:
+    phpunit.xml sqlite :memory: kullanır ve bu bir GÜVENLİK ÖZELLİĞİDİR: `artisan test`
+    hiçbir koşulda gerçek bir veritabanına dokunamaz. RefreshDatabase her koşuda
+    migrate:fresh çalıştırır — yani işaret ettiği şemadaki TÜM TABLOLARI DÜŞÜRÜR.
+
+    Bu yüzden buradaki DB_DATABASE ayrı bir şemadır (getiren_test) ve force="true" ile
+    sabitlenmiştir; yanlışlıkla geliştirme veritabanına (getiren) yönelemez.
+
+    UYARI: DB_DATABASE'i asla geliştirme/üretim şemasıyla aynı yapma — veriyi silersin.
+
+    Kullanım:
+      docker compose exec app php artisan test -c phpunit.mysql.xml
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="BROADCAST_CONNECTION" value="null"/>
+        <env name="CACHE_STORE" value="array"/>
+
+        <!-- force="true": ortamda ne varsa ezilir, test asla başka şemaya kaymaz -->
+        <env name="DB_CONNECTION" value="mysql" force="true"/>
+        <env name="DB_DATABASE" value="getiren_test" force="true"/>
+        <env name="DB_URL" value="" force="true"/>
+
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="NIGHTWATCH_ENABLED" value="false"/>
+    </php>
+</phpunit>

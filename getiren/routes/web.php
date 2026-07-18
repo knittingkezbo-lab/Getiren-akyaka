@@ -1,22 +1,22 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController as AdminAuditLog;
+use App\Http\Controllers\Admin\CourierController as AdminCouriers;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
+use App\Http\Controllers\Admin\OrderController as AdminOrders;
+use App\Http\Controllers\Admin\SettingController as AdminSettings;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\LegalController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\PaymentCallbackController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\Courier\JobController;
+use App\Http\Controllers\Courier\SettingsController as CourierSettings;
 use App\Http\Controllers\Customer\DashboardController as CustomerDashboard;
 use App\Http\Controllers\Customer\OrderController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\ProfileController;
-use App\Http\Controllers\Courier\JobController;
-use App\Http\Controllers\Courier\SettingsController as CourierSettings;
-use App\Http\Controllers\Admin\AuditLogController as AdminAuditLog;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
-use App\Http\Controllers\Admin\OrderController as AdminOrders;
-use App\Http\Controllers\Admin\CourierController as AdminCouriers;
-use App\Http\Controllers\Admin\SettingController as AdminSettings;
+use App\Http\Controllers\LegalController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentCallbackController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

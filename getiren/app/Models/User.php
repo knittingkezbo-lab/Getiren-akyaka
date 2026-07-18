@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Rules\Iban;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -29,7 +31,18 @@ class User extends Authenticatable implements MustVerifyEmail
             'notify_web' => 'boolean',
             'notification_events' => 'array',
             'approved_at' => 'datetime',
+
+            // Finansal veri: veritabanında düz metin durmasın (bkz. encrypt migration).
+            // APP_KEY'e bağlıdır — anahtar kaybolursa bu alanlar geri alınamaz.
+            'iban' => 'encrypted',
+            'iban_holder' => 'encrypted',
         ];
+    }
+
+    /** Ekranda tam IBAN gösterme: TR33 •••• 1326 (son 4 hane doğrulama için kalır). */
+    protected function maskedIban(): Attribute
+    {
+        return Attribute::get(fn () => Iban::mask($this->iban));
     }
 
     public function addresses(): HasMany

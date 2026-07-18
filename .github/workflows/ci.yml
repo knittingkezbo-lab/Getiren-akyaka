@@ -3,7 +3,10 @@ name: CI
 # Her push ve pull request'te çalışır.
 # Not: Laravel uygulaması repo kökünde değil, `getiren/` alt klasöründe;
 # bu yüzden adımlar working-directory: getiren ile koşar.
-# Testler sqlite bellek-içi çalıştığı için (phpunit.xml) MySQL servisine gerek yok.
+#
+# sqlite hızlı geri bildirim içindir ama TEK BAŞINA YETMEZ: lockForUpdate, koşullu
+# UPDATE ve unique çakışması gibi paranın etrafındaki davranışları sqlite MySQL gibi
+# modellemez. Bu yüzden takım ayrıca MySQL 8 servisinde de koşar (mysql-tests).
 
 on:
   push:
@@ -40,6 +43,114 @@ jobs:
 
       - name: Run test suite
         run: php artisan test
+
+  mysql-tests:
+    name: PHPUnit (MySQL 8)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: getiren
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: getiren_test
+          MYSQL_USER: getiren
+          MYSQL_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: getiren
+      DB_PASSWORD: secret
+      # DB_CONNECTION ve DB_DATABASE phpunit.mysql.xml'de force="true" ile sabitlenir:
+      # test asla geliştirme şemasına yönelemez (RefreshDatabase tabloları düşürür).
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_mysql, mysqli, mbstring, bcmath, intl, zip, pcntl
+          coverage: none
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@3
+        with:
+          working-directory: getiren
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Wait for MySQL
+        run: |
+          for i in $(seq 1 30); do
+            mysqladmin ping -h 127.0.0.1 -ugetiren -psecret --silent && exit 0
+            sleep 2
+          done
+          echo "MySQL 60 sn içinde hazır olmadı"; exit 1
+
+      - name: Run test suite (MySQL)
+        run: php artisan test -c phpunit.mysql.xml
+
+  quality:
+    name: Kod stili & güvenlik denetimi
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: getiren
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, bcmath, intl, zip
+          coverage: none
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: getiren/package-lock.json
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@3
+        with:
+          working-directory: getiren
+
+      - name: Pint (kod stili)
+        run: ./vendor/bin/pint --test
+
+      # PHP bağımlılıkları az ve doğrudan bizim seçimimiz: açık varsa build kırılsın.
+      - name: Composer güvenlik denetimi
+        run: composer audit
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      # npm ağacı derin; her transitive uyarıda kırmak akışı boğar.
+      # Yüksek/kritik kırar, düşük seviye rapor olarak kalır.
+      - name: npm güvenlik denetimi
+        run: npm audit --audit-level=high
 
   assets:
     name: Frontend build (vite)

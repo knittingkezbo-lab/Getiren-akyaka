@@ -1,8 +1,13 @@
 <?php
 
+use App\Http\Middleware\EnsureCourierApproved;
+use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -13,17 +18,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // TLS-sonlandıran proxy/tünel (Cloudflare vb.) arkasında https şemasını doğru algıla
-        $middleware->trustProxies(at: '*');
+        // TLS-sonlandıran proxy/tünel (Cloudflare vb.) arkasında https şemasını doğru algıla.
+        // Liste '*' DEĞİL: config/security.php'den okunur, çünkü '*' istemcinin kendi IP'sini
+        // uydurmasına izin verirdi ve IP tabanlı giriş limiti/denetim kaydı anlamsızlaşırdı.
+        $middleware->replace(
+            TrustProxies::class,
+            App\Http\Middleware\TrustProxies::class,
+        );
 
         $middleware->web(append: [
-            \App\Http\Middleware\HandleInertiaRequests::class,
-            \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            HandleInertiaRequests::class,
+            AddLinkHeadersForPreloadedAssets::class,
         ]);
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
-            'courier.approved' => \App\Http\Middleware\EnsureCourierApproved::class,
+            'role' => EnsureUserHasRole::class,
+            'courier.approved' => EnsureCourierApproved::class,
         ]);
 
         // Giriş yapmış kullanıcı misafir sayfalarına (login/register) gelirse

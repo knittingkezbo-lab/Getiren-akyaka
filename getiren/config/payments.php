@@ -1,5 +1,8 @@
 <?php
 
+use App\Payments\DemoGateway;
+use App\Payments\PayTRGateway;
+
 return [
 
     /*
@@ -18,8 +21,8 @@ return [
     'driver' => env('PAYMENT_DRIVER', 'demo'),
 
     'drivers' => [
-        'demo' => App\Payments\DemoGateway::class,
-        'paytr' => App\Payments\PayTRGateway::class,
+        'demo' => DemoGateway::class,
+        'paytr' => PayTRGateway::class,
     ],
 
     /*

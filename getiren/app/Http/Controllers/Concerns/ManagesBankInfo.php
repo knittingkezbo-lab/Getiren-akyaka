@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Concerns;
 
+use App\Rules\Iban;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -16,13 +17,13 @@ trait ManagesBankInfo
         ]);
 
         // Boşlukları ayıkla + büyük harf; boşsa null
-        $iban = filled($data['iban'] ?? null)
-            ? strtoupper(preg_replace('/\s+/', '', $data['iban']))
-            : null;
+        $iban = Iban::normalize($data['iban'] ?? null);
 
-        if ($iban !== null && ! preg_match('/^TR\d{24}$/', $iban)) {
+        // Biçim + mod-97 checksum. Sadece biçime bakmak yetmez: tek hanesi yanlış
+        // yazılmış IBAN da "TR + 24 rakam" kalıbına uyar ve para yanlış hesaba gider.
+        if ($iban !== null && ! Iban::isValid($iban)) {
             throw ValidationException::withMessages([
-                'iban' => 'Geçerli bir TR IBAN girin (TR + 24 rakam).',
+                'iban' => 'Geçerli bir TR IBAN girin (TR + 24 rakam, kontrol hanesi tutmalı).',
             ]);
         }
 

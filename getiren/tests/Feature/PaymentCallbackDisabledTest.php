@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\AuthorizationStatus;
 use App\Enums\OrderStatus;
-use App\Models\Order;
 use App\Models\PaymentAuthorization;
 use App\Models\Zone;
 use Database\Seeders\PriceHintSeeder;
