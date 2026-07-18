@@ -179,7 +179,7 @@ Yalnızca **dev** ortamında seed edilir (`APP_ENV != production`).
 ## Test & CI
 
 ```bash
-docker compose exec app php artisan test                        # 142 test (sqlite :memory)
+docker compose exec app php artisan test                        # 149 test (sqlite :memory)
 docker compose exec app php artisan test -c phpunit.mysql.xml   # aynı takım, gerçek MySQL 8
 ```
 
@@ -197,8 +197,23 @@ GitHub Actions (`.github/workflows/ci.yml`) 4 job:
 |---|---|
 | `tests` | Tüm takım, sqlite :memory: — hızlı geri bildirim |
 | `mysql-tests` | Aynı takım, MySQL 8 servisinde — kilit/yarış davranışı gerçek motorda |
-| `assets` | `npm run build` (vite) |
-| `quality` | Pint (kod stili) + `composer audit` + `npm audit --audit-level=high` |
+| `assets` | `npm run build` (vite) + `npm audit --audit-level=high` |
+| `quality` | Pint (kod stili) + `composer audit` |
+
+**CI'a dokunurken bilinmesi gerekenler** (hepsi bir kez kırdı):
+
+- **Üçüncü taraf action kullanma.** Bu depoda `shivammathur/setup-php` ve
+  `ramsey/composer-install` "Set up job" aşamasında engelleniyor. CI 29 koşu boyunca
+  bu yüzden kırmızıydı ve kimse fark etmedi — yalnızca vite job'ı geçiyordu.
+- **PHP 8.4 şart.** `composer.lock`'taki symfony/* bileşenleri `php >=8.4.1` istiyor;
+  `ubuntu-latest` runner'ında 8.3 var. PHP job'ları bu yüzden `php:8.4-cli` container'ında koşar.
+- **Eklentiler `Dockerfile` ile birebir aynı kurulur.** `php:8.4-cli` bcmath/zip/intl/pcntl/pdo_mysql
+  getirmez; composer ve Pint onlarsız çalıştığı için eksiklik ancak `artisan test`'te patlar.
+- **MySQL beklemesi `pdo_mysql` ile yapılır, `mysqladmin` ile değil.** Actions servislerine
+  `command` verilemediği için CI'daki MySQL 8 `caching_sha2_password` kullanır; Debian'ın
+  `mysqladmin`'i (MariaDB istemcisi) bununla doğrulayamaz.
+- **YAML'ı push'tan önce parse et.** Düz skaler içindeki `": "` dosyayı bozar ve GitHub
+  hiç job üretmez (koşu 0 job'la kırmızı döner).
 
 ### Paranın etrafındaki kapılar
 
