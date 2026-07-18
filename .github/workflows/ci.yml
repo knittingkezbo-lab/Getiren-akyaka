@@ -4,6 +4,13 @@ name: CI
 # Not: Laravel uygulaması repo kökünde değil, `getiren/` alt klasöründe;
 # bu yüzden adımlar working-directory: getiren ile koşar.
 #
+# ÜÇÜNCÜ TARAF ACTION KULLANILMIYOR (shivammathur/setup-php, ramsey/composer-install).
+# Bu depoda onlar "Set up job" aşamasında engelleniyordu: 29 koşunun 29'unda PHP job'ları
+# daha ilk adımda düşmüş, yalnızca GitHub'ın kendi action'larını kullanan vite job'ı
+# geçmişti. Yani CI aylarca kırmızıydı ve kimseye bir şey söylemiyordu.
+# Runner'da PHP ve Composer hazır geldiği için onları doğrudan kullanıyoruz.
+# (Depo ayarlarından üçüncü taraf action'lara izin verilirse setup-php'ye dönülebilir.)
+#
 # sqlite hızlı geri bildirim içindir ama TEK BAŞINA YETMEZ: lockForUpdate, koşullu
 # UPDATE ve unique çakışması gibi paranın etrafındaki davranışları sqlite MySQL gibi
 # modellemez. Bu yüzden takım ayrıca MySQL 8 servisinde de koşar (mysql-tests).
@@ -14,7 +21,7 @@ on:
 
 jobs:
   tests:
-    name: PHPUnit (php artisan test)
+    name: PHPUnit (sqlite)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,20 +30,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: pdo_sqlite, sqlite3, mbstring, bcmath, intl, zip, pcntl
-          coverage: none
+      - name: Ortam bilgisi
+        run: php -v && composer -V && php -m | tr '\n' ' '
 
       - name: Copy .env
         run: cp .env.example .env
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@3
-        with:
-          working-directory: getiren
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Generate application key
         run: php artisan key:generate
@@ -79,20 +80,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: pdo_mysql, mysqli, mbstring, bcmath, intl, zip, pcntl
-          coverage: none
+      - name: Ortam bilgisi
+        run: php -v && php -m | grep -i -E "pdo_mysql|mysqli" || echo "UYARI: pdo_mysql yok"
 
       - name: Copy .env
         run: cp .env.example .env
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@3
-        with:
-          working-directory: getiren
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Generate application key
         run: php artisan key:generate
@@ -118,13 +113,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: mbstring, bcmath, intl, zip
-          coverage: none
-
       - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
@@ -133,9 +121,7 @@ jobs:
           cache-dependency-path: getiren/package-lock.json
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@3
-        with:
-          working-directory: getiren
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Pint (kod stili)
         run: ./vendor/bin/pint --test
