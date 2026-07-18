@@ -127,13 +127,23 @@ jobs:
       - name: Generate application key
         run: php artisan key:generate
 
+      # Bekleme PHP'nin kendi sürücüsüyle yapılır, mysqladmin ile değil.
+      # Yerelde docker-compose MySQL'i mysql_native_password ile başlatıyor, ama GitHub
+      # Actions servislerine command verilemiyor: CI'daki MySQL 8 varsayılan
+      # caching_sha2_password kullanıyor ve Debian'ın mysqladmin'i (MariaDB istemcisi)
+      # bununla kimlik doğrulayamıyor. pdo_mysql (mysqlnd) doğrulayabiliyor — zaten
+      # uygulamanın gerçekten kullandığı istemci de bu.
       - name: Wait for MySQL
         run: |
-          for i in $(seq 1 30); do
-            if mysqladmin ping -h mysql -ugetiren -psecret --silent; then exit 0; fi
+          for i in $(seq 1 45); do
+            if php -r 'new PDO("mysql:host=".getenv("DB_HOST").";port=".getenv("DB_PORT"), getenv("DB_USERNAME"), getenv("DB_PASSWORD"));' 2>/dev/null; then
+              echo "MySQL hazir ($((i*2)) sn)"
+              exit 0
+            fi
             sleep 2
           done
-          echo "MySQL 60 sn icinde hazir olmadi"
+          echo "MySQL 90 sn icinde hazir olmadi - son hata:"
+          php -r 'new PDO("mysql:host=".getenv("DB_HOST").";port=".getenv("DB_PORT"), getenv("DB_USERNAME"), getenv("DB_PASSWORD"));'
           exit 1
 
       - name: Run test suite (MySQL)
