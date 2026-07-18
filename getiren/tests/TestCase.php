@@ -10,6 +10,25 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * PHP testleri derlenmiş frontend varlıklarına bağımlı olmamalı.
+     *
+     * Tam sayfa render eden testler Blade'deki @vite direktifine düşüyor ve o da
+     * public/build/manifest.json arıyordu. Dosya geliştirme makinesinde vardı (sürekli
+     * vite build koşuyoruz) ama temiz bir checkout'ta yok — CI'da 5 test bu yüzden
+     * "Vite manifest not found" ile düşüyordu. Yani testler görünmez biçimde
+     * "önce npm run build koşulmuş olmasına" bağlıydı.
+     *
+     * withoutVite() bu bağı keser: sunucu davranışını sınayan testler, varlıkların
+     * derlenip derlenmediğinden bağımsız olarak aynı sonucu verir.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+    }
+
     protected function makeCustomer(): User
     {
         return User::factory()->create(['role' => UserRole::Customer]);
