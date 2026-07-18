@@ -1,19 +1,22 @@
 name: CI
 
-# Her push ve pull request'te çalışır.
-# Not: Laravel uygulaması repo kökünde değil, `getiren/` alt klasöründe;
-# bu yüzden adımlar working-directory: getiren ile koşar.
+# Laravel uygulaması repo kökünde değil, `getiren/` alt klasöründe.
 #
-# ÜÇÜNCÜ TARAF ACTION KULLANILMIYOR (shivammathur/setup-php, ramsey/composer-install).
-# Bu depoda onlar "Set up job" aşamasında engelleniyordu: 29 koşunun 29'unda PHP job'ları
-# daha ilk adımda düşmüş, yalnızca GitHub'ın kendi action'larını kullanan vite job'ı
-# geçmişti. Yani CI aylarca kırmızıydı ve kimseye bir şey söylemiyordu.
-# Runner'da PHP ve Composer hazır geldiği için onları doğrudan kullanıyoruz.
-# (Depo ayarlarından üçüncü taraf action'lara izin verilirse setup-php'ye dönülebilir.)
+# İKİ TUZAK VAR, İKİSİ DE YAŞANDI:
 #
-# sqlite hızlı geri bildirim içindir ama TEK BAŞINA YETMEZ: lockForUpdate, koşullu
-# UPDATE ve unique çakışması gibi paranın etrafındaki davranışları sqlite MySQL gibi
-# modellemez. Bu yüzden takım ayrıca MySQL 8 servisinde de koşar (mysql-tests).
+# 1) Üçüncü taraf action kullanılmıyor (shivammathur/setup-php, ramsey/composer-install).
+#    Bu depoda onlar "Set up job" aşamasında engelleniyor: 29 koşu boyunca PHP job'ları
+#    daha ilk saniyede düşmüş, yalnızca GitHub'ın kendi action'larını kullanan vite job'ı
+#    geçmişti. Yani CI aylarca kırmızıydı ve kimse bir şey doğrulamıyordu.
+#
+# 2) PHP sürümü 8.4 OLMAK ZORUNDA. composer.lock'taki symfony/* bileşenleri php >=8.4.1
+#    istiyor; ubuntu-latest runner'ında PHP 8.3 var ve `composer install` orada düşüyor.
+#    Bu yüzden PHP job'ları php:8.4-cli container'ında koşuyor — üretimdeki sürümün aynısı.
+#
+# NOT: container job'larında servislere port değil SERVİS ADIYLA erişilir (mysql:3306).
+#
+# sqlite hızlı geri bildirim içindir ama tek başına yetmez: lockForUpdate, koşullu UPDATE
+# ve unique çakışması gibi paranın etrafındaki davranışları MySQL gibi modellemez.
 
 on:
   push:
@@ -23,10 +26,24 @@ jobs:
   tests:
     name: PHPUnit (sqlite)
     runs-on: ubuntu-latest
+    container:
+      image: php:8.4-cli
     defaults:
       run:
         working-directory: getiren
     steps:
+      - name: Sistem paketleri
+        working-directory: .
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq git unzip
+
+      - name: Composer kur
+        working-directory: .
+        run: |
+          curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
+          php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -34,7 +51,6 @@ jobs:
         run: |
           php -v
           composer -V
-          php -m | tr '\n' ' '
 
       - name: Copy .env
         run: cp .env.example .env
@@ -51,6 +67,8 @@ jobs:
   mysql-tests:
     name: PHPUnit (MySQL 8)
     runs-on: ubuntu-latest
+    container:
+      image: php:8.4-cli
     defaults:
       run:
         working-directory: getiren
@@ -63,8 +81,6 @@ jobs:
           MYSQL_DATABASE: getiren_test
           MYSQL_USER: getiren
           MYSQL_PASSWORD: secret
-        ports:
-          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h localhost -uroot -proot"
           --health-interval=5s
@@ -72,7 +88,8 @@ jobs:
           --health-retries=20
 
     env:
-      DB_HOST: 127.0.0.1
+      # container job: servise adıyla erişilir, host port eşlemesi yok
+      DB_HOST: mysql
       DB_PORT: 3306
       DB_USERNAME: getiren
       DB_PASSWORD: secret
@@ -80,13 +97,26 @@ jobs:
       # test asla geliştirme şemasına yönelemez (RefreshDatabase tabloları düşürür).
 
     steps:
+      - name: Sistem paketleri ve pdo_mysql
+        working-directory: .
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq git unzip default-mysql-client
+          docker-php-ext-install -j"$(nproc)" pdo_mysql
+
+      - name: Composer kur
+        working-directory: .
+        run: |
+          curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
+          php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Ortam bilgisi
         run: |
           php -v
-          php -m | grep -i -E "pdo_mysql|mysqli" || echo "UYARI - pdo_mysql eklentisi yok"
+          php -m | grep -i pdo_mysql
 
       - name: Copy .env
         run: cp .env.example .env
@@ -100,30 +130,38 @@ jobs:
       - name: Wait for MySQL
         run: |
           for i in $(seq 1 30); do
-            mysqladmin ping -h 127.0.0.1 -ugetiren -psecret --silent && exit 0
+            if mysqladmin ping -h mysql -ugetiren -psecret --silent; then exit 0; fi
             sleep 2
           done
-          echo "MySQL 60 sn içinde hazır olmadı"; exit 1
+          echo "MySQL 60 sn icinde hazir olmadi"
+          exit 1
 
       - name: Run test suite (MySQL)
         run: php artisan test -c phpunit.mysql.xml
 
   quality:
-    name: Kod stili & güvenlik denetimi
+    name: Kod stili & Composer denetimi
     runs-on: ubuntu-latest
+    container:
+      image: php:8.4-cli
     defaults:
       run:
         working-directory: getiren
     steps:
+      - name: Sistem paketleri
+        working-directory: .
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq git unzip
+
+      - name: Composer kur
+        working-directory: .
+        run: |
+          curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
+          php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-          cache-dependency-path: getiren/package-lock.json
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -135,16 +173,8 @@ jobs:
       - name: Composer güvenlik denetimi
         run: composer audit
 
-      - name: Install npm dependencies
-        run: npm ci
-
-      # npm ağacı derin; her transitive uyarıda kırmak akışı boğar.
-      # Yüksek/kritik kırar, düşük seviye rapor olarak kalır.
-      - name: npm güvenlik denetimi
-        run: npm audit --audit-level=high
-
   assets:
-    name: Frontend build (vite)
+    name: Frontend build & npm denetimi
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -165,3 +195,8 @@ jobs:
 
       - name: Build assets
         run: npm run build
+
+      # npm ağacı derin; her transitive uyarıda kırmak akışı boğar.
+      # Yüksek/kritik kırar, düşük seviye rapor olarak kalır.
+      - name: npm güvenlik denetimi
+        run: npm audit --audit-level=high
